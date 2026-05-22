@@ -1893,12 +1893,12 @@ function initAnalytics(){
   if(window.gtag)return;
   const s=document.createElement('script');
   s.async=true;
-  s.src='https://www.googletagmanager.com/gtag/js?id=G-1GNNQ9JNBY';
+  s.src='https://www.googletagmanager.com/gtag/js?id=G-BH5VX35V6B';
   document.head.appendChild(s);
   window.dataLayer=window.dataLayer||[];
   window.gtag=function(){dataLayer.push(arguments)};
   gtag('js',new Date());
-  gtag('config','G-1GNNQ9JNBY',{anonymize_ip:true,cookie_flags:'SameSite=None;Secure'});
+  gtag('config','G-BH5VX35V6B');
 }
 
 if(localStorage.getItem('clipoCookieConsent')==='accepted')initAnalytics();
