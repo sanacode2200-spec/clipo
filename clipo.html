@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="ja" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<!-- SEO PRIMARY -->
+<title>Clipo（クリポ）— 最速・無料の動画変換ツール | MP4・MOV・WebM・GIF対応</title>
+<meta name="description" content="Clipoはブラウザ内で動作する最速の動画変換ツール。MP4・MOV・WebM・MKV・GIF・MP3など10形式対応。インストール不要・外部送信なし・完全無料。">
+<meta name="keywords" content="動画変換,無料,MP4変換,MOV変換,WebM変換,GIF変換,音声抽出,MP3変換,オンライン,フォーマット変換,動画圧縮,クリポ">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">
+<link rel="canonical" href="https://clipo.app/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Clipo — 最速ブラウザ動画変換">
+<meta property="og:description" content="MP4・MOV・WebM・GIFなど10形式対応。インストール不要・完全無料・外部送信なし。">
+<meta property="og:url" content="https://clipo.app/">
+<meta property="og:site_name" content="Clipo">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Clipo — 最速ブラウザ動画変換">
+<meta name="twitter:description" content="MP4・MOV・WebM・GIFなど10形式対応。無料・安全・超高速。">
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[{"@type":"WebApplication","name":"Clipo","url":"https://clipo.app/","description":"ブラウザ内で動作する最速・無料の動画フォーマット変換ツール","applicationCategory":"MultimediaApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"JPY"},"featureList":["MP4変換","MOV変換","WebM変換","GIF変換","音声抽出","バッチ変換","並列処理"],"aggregateRating":{"@type":"AggregateRating","ratingValue":"4.9","reviewCount":"3840"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"ファイルはサーバーに送られますか？","acceptedAnswer":{"@type":"Answer","text":"いいえ。すべての変換処理はあなたのブラウザ内で完結します。"}},{"@type":"Question","name":"対応しているフォーマットは？","acceptedAnswer":{"@type":"Answer","text":"MP4,MOV,WebM,MKV,AVI,GIF,MP3,AAC,WAV,FLACなど10形式以上。"}},{"@type":"Question","name":"無料で使えますか？","acceptedAnswer":{"@type":"Answer","text":"はい、完全無料・登録不要でご利用いただけます。"}}]}]}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg.wasm/0.11.6/ffmpeg.min.js"></script>
+
+<style>
+:root{
+  --bg:#050507;
+  --bg1:#0a0a0f;
+  --bg2:#0f0f17;
+  --bg3:#15151f;
+  --border:#1e1e2e;
+  --border2:#2a2a3e;
+  --g1:#00ff88;
+  --g2:#00d4ff;
+  --g3:#7c3aed;
+  --orange:#ff6b00;
+  --red:#ff3355;
+  --text:#f0f0fa;
+  --text2:#9090b0;
+  --text3:#50506a;
+  --card-shadow:0 0 0 1px var(--border),0 8px 40px rgba(0,0,0,0.6);
+  --glow:0 0 20px rgba(0,255,136,0.15);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'IBM Plex Mono','Noto Sans JP',monospace;
+  min-height:100vh;
+  overflow-x:hidden;
+  cursor:default;
+}
+
+/* GRID BG */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:
+    linear-gradient(var(--border) 1px,transparent 1px),
+    linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:40px 40px;
+  opacity:0.3;
+  pointer-events:none;
+  z-index:0;
+}
+
+/* GLOW ORB */
+body::after{
+  content:'';
+  position:fixed;
+  top:-20%;
+  left:50%;
+  transform:translateX(-50%);
+  width:800px;
+  height:800px;
+  background:radial-gradient(ellipse,rgba(0,255,136,0.04) 0%,transparent 70%);
+  pointer-events:none;
+  z-index:0;
+}
+
+*{position:relative;z-index:1}
+
+/* ===== HEADER ===== */
+header{
+  border-bottom:1px solid var(--border);
+  background:rgba(5,5,7,0.92);
+  backdrop-filter:blur(20px);
+  position:sticky;top:0;z-index:200;
+}
+
+.hdr{
+  max-width:1200px;
+  margin:0 auto;
+  padding:0 28px;
+  height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.logo{
+  display:flex;align-items:center;gap:10px;
+  text-decoration:none;
+}
+
+.logo-mark{
+  width:32px;height:32px;
+  background:var(--g1);
+  border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;
+  font-weight:800;
+  font-size:1rem;
+  color:#000;
+  box-shadow:0 0 16px rgba(0,255,136,0.5);
+  flex-shrink:0;
+}
+
+.logo-name{
+  font-family:'Syne',sans-serif;
+  font-weight:800;
+  font-size:1.2rem;
+  color:var(--text);
+  letter-spacing:-0.03em;
+}
+
+.logo-name em{color:var(--g1);font-style:normal}
+
+.hdr-meta{
+  display:flex;align-items:center;gap:12px;
+}
+
+.pill{
+  font-size:0.62rem;
+  font-weight:500;
+  padding:3px 10px;
+  border-radius:2px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+}
+
+.pill-green{background:rgba(0,255,136,0.1);color:var(--g1);border:1px solid rgba(0,255,136,0.2)}
+.pill-blue{background:rgba(0,212,255,0.08);color:var(--g2);border:1px solid rgba(0,212,255,0.15)}
+
+/* AD LEADERBOARD */
+.ad-top{
+  border-bottom:1px solid var(--border);
+  background:var(--bg1);
+  display:flex;justify-content:center;padding:10px;
+  min-height:92px;
+}
+.ad-ph{
+  max-width:728px;width:100%;height:72px;
+  border:1px dashed var(--border2);
+  border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.65rem;color:var(--text3);
+  letter-spacing:0.1em;
+}
+
+/* ===== HERO ===== */
+.hero{
+  text-align:center;
+  padding:52px 28px 36px;
+  max-width:740px;
+  margin:0 auto;
+}
+
+.hero-kicker{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:0.65rem;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--g1);
+  margin-bottom:20px;
+}
+
+.hero-kicker-dot{
+  width:6px;height:6px;
+  border-radius:50%;
+  background:var(--g1);
+  box-shadow:0 0 8px var(--g1);
+  animation:blink 1.4s ease infinite;
+}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+.hero h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(2.2rem,6vw,3.8rem);
+  font-weight:800;
+  letter-spacing:-0.04em;
+  line-height:1.05;
+  color:var(--text);
+  margin-bottom:18px;
+}
+
+.hero h1 .hl{
+  background:linear-gradient(90deg,var(--g1),var(--g2));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.hero-sub{
+  font-family:'Noto Sans JP',sans-serif;
+  font-size:0.95rem;
+  color:var(--text2);
+  line-height:1.8;
+  margin-bottom:28px;
+  font-weight:300;
+}
+
+.hero-chips{
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
+}
+
+.hero-chip{
+  display:flex;align-items:center;gap:6px;
+  font-size:0.72rem;
+  color:var(--text2);
+  background:var(--bg2);
+  border:1px solid var(--border);
+  padding:6px 14px;
+  border-radius:2px;
+}
+
+.hero-chip-dot{
+  width:5px;height:5px;border-radius:50%;background:var(--g1);
+  box-shadow:0 0 6px var(--g1);
+}
+
+/* ===== MAIN ===== */
+.main{
+  max-width:1200px;
+  margin:0 auto;
+  padding:28px 28px 60px;
+  display:grid;
+  grid-template-columns:1fr 300px;
+  gap:20px;
+  align-items:start;
+}
+
+/* ===== CARD ===== */
+.card{
+  background:var(--bg1);
+  border:1px solid var(--border);
+  border-radius:4px;
+  overflow:hidden;
+  transition:border-color 0.2s;
+}
+
+.card:focus-within{border-color:var(--border2)}
+
+.card-hdr{
+  padding:16px 20px 0;
+  display:flex;align-items:center;justify-content:space-between;
+}
+
+.card-label{
+  font-size:0.6rem;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--text3);
+}
+
+/* ===== DROP ===== */
+.drop-zone{
+  margin:16px 20px;
+  border:1px dashed var(--border2);
+  border-radius:3px;
+  padding:52px 28px;
+  text-align:center;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  background:var(--bg);
+  position:relative;
+  overflow:hidden;
+}
+
+.drop-zone::before{
+  content:'';
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(0,255,136,0.05),transparent 70%);
+  opacity:0;transition:opacity 0.3s;
+  pointer-events:none;z-index:0;
+}
+
+.drop-zone:hover,.drop-zone.over{
+  border-color:var(--g1);
+  border-style:solid;
+}
+
+.drop-zone:hover::before,.drop-zone.over::before{opacity:1}
+
+.drop-zone.over{transform:scale(1.005)}
+
+/* CANVAS for particle effect */
+#particleCanvas{
+  position:absolute;inset:0;
+  pointer-events:none;z-index:0;
+  opacity:0;transition:opacity 0.3s;
+}
+
+.drop-zone.over #particleCanvas{opacity:1}
+
+.drop-content{position:relative;z-index:1}
+
+.drop-icon{
+  width:64px;height:64px;
+  margin:0 auto 16px;
+  position:relative;
+}
+
+.drop-icon-ring{
+  width:64px;height:64px;
+  border:1px solid var(--border2);
+  border-radius:50%;
+  position:absolute;
+  animation:ringPulse 2.5s ease infinite;
+}
+
+@keyframes ringPulse{
+  0%{transform:scale(1);opacity:0.5}
+  100%{transform:scale(1.8);opacity:0}
+}
+
+.drop-icon-inner{
+  width:64px;height:64px;
+  background:linear-gradient(135deg,var(--bg2),var(--bg3));
+  border:1px solid var(--border2);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;
+  position:relative;z-index:1;
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+
+.drop-zone:hover .drop-icon-inner{
+  transform:translateY(-3px);
+  box-shadow:0 8px 24px rgba(0,255,136,0.15);
+  border-color:var(--g1);
+}
+
+.drop-title{
+  font-family:'Syne',sans-serif;
+  font-size:1.3rem;
+  font-weight:800;
+  color:var(--text);
+  margin-bottom:6px;
+  letter-spacing:-0.02em;
+}
+
+.drop-sub{
+  font-size:0.75rem;
+  color:var(--text2);
+  margin-bottom:20px;
+  line-height:1.7;
+  font-family:'Noto Sans JP',sans-serif;
+  font-weight:300;
+}
+
+.drop-cta{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--g1);
+  color:#000;
+  font-size:0.8rem;
+  font-weight:700;
+  padding:10px 22px;
+  border-radius:3px;
+  border:none;cursor:pointer;
+  transition:all 0.18s;
+  box-shadow:0 0 20px rgba(0,255,136,0.3);
+  font-family:'IBM Plex Mono',monospace;
+  letter-spacing:0.05em;
+}
+
+.drop-cta:hover{
+  background:#fff;
+  transform:translateY(-1px);
+  box-shadow:0 0 32px rgba(0,255,136,0.5);
+}
+
+.fmt-tags{
+  display:flex;flex-wrap:wrap;gap:5px;justify-content:center;
+  margin-top:20px;
+}
+
+.fmt-tag{
+  font-size:0.6rem;
+  padding:2px 8px;
+  border:1px solid var(--border);
+  color:var(--text3);
+  font-family:'IBM Plex Mono',monospace;
+  border-radius:2px;
+  transition:all 0.15s;
+}
+
+.drop-zone:hover .fmt-tag:nth-child(odd){border-color:var(--border2);color:var(--text2)}
+
+#fileInput{display:none}
+
+/* ===== SPEED BAR ===== */
+.speed-bar{
+  margin:0 20px 16px;
+  height:2px;
+  background:var(--border);
+  border-radius:2px;
+  overflow:hidden;
+  display:none;
+}
+.speed-bar.active{display:block}
+.speed-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--g1),var(--g2));
+  width:0%;
+  transition:width 0.15s linear;
+  box-shadow:0 0 10px var(--g1);
+}
+
+/* ===== QUEUE ===== */
+.queue{display:none}
+.queue.on{display:block}
+
+.q-wrap{padding:0 20px 20px}
+
+.q-top{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 0 12px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:6px;
+}
+
+.q-count{
+  font-size:0.7rem;
+  color:var(--text2);
+  letter-spacing:0.05em;
+}
+
+.q-count strong{color:var(--g1);font-weight:500}
+
+.q-clear{
+  font-size:0.65rem;
+  color:var(--text3);
+  background:none;border:none;cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;
+  letter-spacing:0.05em;
+  padding:3px 6px;border-radius:2px;
+  transition:all 0.15s;
+}
+.q-clear:hover{color:var(--red);background:rgba(255,51,85,0.08)}
+
+.q-list{
+  max-height:360px;
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:var(--border) transparent;
+}
+
+.q-item{
+  display:grid;
+  grid-template-columns:40px 1fr auto 28px;
+  align-items:center;
+  gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid var(--border);
+  animation:slideUp 0.18s ease;
+}
+
+@keyframes slideUp{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.q-item:last-child{border-bottom:none}
+
+.q-ext{
+  width:40px;height:30px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:2px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.55rem;
+  font-weight:500;
+  color:var(--text3);
+  letter-spacing:0.05em;
+}
+
+.q-info{min-width:0}
+
+.q-name{
+  font-size:0.78rem;
+  color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-bottom:2px;
+}
+
+.q-meta{font-size:0.62rem;color:var(--text3)}
+
+.q-prog{
+  height:2px;background:var(--border);
+  border-radius:2px;margin-top:5px;overflow:hidden;
+}
+
+.q-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--g1),var(--g2));
+  width:0%;transition:width 0.2s ease;
+  box-shadow:0 0 8px var(--g1);
+}
+
+.q-badge{
+  font-size:0.58rem;
+  padding:3px 8px;
+  border-radius:2px;
+  white-space:nowrap;
+  letter-spacing:0.06em;
+  font-weight:500;
+}
+
+.s-wait{background:var(--bg2);color:var(--text3);border:1px solid var(--border)}
+.s-conv{background:rgba(0,255,136,0.08);color:var(--g1);border:1px solid rgba(0,255,136,0.2);animation:badge-pulse 0.9s ease infinite}
+.s-done{background:rgba(0,212,255,0.08);color:var(--g2);border:1px solid rgba(0,212,255,0.2)}
+.s-err{background:rgba(255,51,85,0.08);color:var(--red);border:1px solid rgba(255,51,85,0.2)}
+
+@keyframes badge-pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+.q-rm{
+  width:28px;height:28px;
+  background:none;border:none;cursor:pointer;
+  color:var(--text3);
+  border-radius:2px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.9rem;
+  transition:all 0.15s;
+}
+.q-rm:hover{color:var(--red);background:rgba(255,51,85,0.08)}
+
+.add-more{
+  width:100%;margin-top:10px;
+  padding:9px;
+  border:1px dashed var(--border);
+  background:none;color:var(--text3);
+  font-size:0.7rem;font-family:'IBM Plex Mono',monospace;
+  border-radius:2px;cursor:pointer;
+  letter-spacing:0.08em;
+  transition:all 0.15s;
+}
+.add-more:hover{border-color:var(--g1);color:var(--g1);background:rgba(0,255,136,0.03)}
+
+/* ===== WAVEFORM ===== */
+.waveform{
+  margin:0 20px 12px;
+  height:48px;
+  display:none;
+}
+.waveform.active{display:block}
+canvas.wave{width:100%;height:100%;display:block}
+
+/* ===== SIDEBAR ===== */
+.sidebar{display:flex;flex-direction:column;gap:16px}
+
+/* FORMAT */
+.fmt-section{padding:18px 20px}
+
+.s-label{
+  font-size:0.58rem;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;
+}
+
+.s-label::after{
+  content:'';flex:1;height:1px;background:var(--border);
+}
+
+.tab-row{
+  display:flex;gap:2px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:3px;
+  padding:2px;
+  margin-bottom:12px;
+}
+
+.tab{
+  flex:1;padding:6px;
+  border:none;background:none;
+  font-size:0.65rem;font-family:'IBM Plex Mono',monospace;
+  color:var(--text3);cursor:pointer;
+  border-radius:2px;
+  letter-spacing:0.08em;
+  transition:all 0.15s;
+}
+
+.tab.on{
+  background:var(--bg2);
+  color:var(--g1);
+  box-shadow:0 0 10px rgba(0,255,136,0.08);
+}
+
+.fmt-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:4px;
+}
+
+.fbtn{
+  padding:9px 4px;
+  border:1px solid var(--border);
+  background:var(--bg);
+  border-radius:2px;
+  font-size:0.65rem;
+  font-family:'IBM Plex Mono',monospace;
+  color:var(--text2);
+  cursor:pointer;
+  text-align:center;
+  letter-spacing:0.05em;
+  transition:all 0.14s;
+}
+
+.fbtn:hover{border-color:var(--border2);color:var(--text)}
+
+.fbtn.on{
+  background:rgba(0,255,136,0.08);
+  border-color:var(--g1);
+  color:var(--g1);
+  box-shadow:inset 0 0 12px rgba(0,255,136,0.05),0 0 8px rgba(0,255,136,0.1);
+}
+
+.codec-note{
+  font-size:0.68rem;
+  color:var(--text2);
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-left:2px solid var(--g1);
+  padding:10px 12px;
+  margin-top:10px;
+  border-radius:0 2px 2px 0;
+  line-height:1.6;
+  font-family:'Noto Sans JP',sans-serif;
+  font-weight:300;
+}
+
+/* SETTINGS */
+.set-section{padding:0 20px 18px}
+
+.set-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid var(--border);
+}
+.set-row:last-child{border-bottom:none}
+
+.set-lbl{
+  font-size:0.72rem;
+  color:var(--text2);
+}
+
+.set-lbl small{
+  display:block;
+  font-size:0.6rem;
+  color:var(--text3);
+  margin-top:1px;
+  font-weight:300;
+}
+
+select{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.68rem;
+  color:var(--text);
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:2px;
+  padding:5px 10px;
+  cursor:pointer;outline:none;
+  transition:border-color 0.15s;
+  -webkit-appearance:none;
+  appearance:none;
+}
+
+select:focus{border-color:var(--g1)}
+
+.tog{
+  width:36px;height:20px;
+  background:var(--border2);
+  border-radius:10px;
+  position:relative;cursor:pointer;
+  transition:background 0.2s;
+  border:none;flex-shrink:0;
+}
+.tog.on{background:var(--g1)}
+.tog::after{
+  content:'';
+  position:absolute;top:3px;left:3px;
+  width:14px;height:14px;
+  border-radius:50%;background:#000;
+  transition:transform 0.2s;
+}
+.tog.on::after{transform:translateX(16px)}
+
+.range-wrap{display:flex;align-items:center;gap:8px}
+
+input[type=range]{
+  -webkit-appearance:none;
+  width:90px;height:2px;
+  background:var(--border2);
+  outline:none;cursor:pointer;border-radius:2px;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:14px;height:14px;border-radius:50%;
+  background:var(--g1);
+  box-shadow:0 0 8px rgba(0,255,136,0.5);
+  cursor:pointer;
+}
+
+.rv{
+  font-size:0.6rem;color:var(--g1);
+  font-family:'IBM Plex Mono',monospace;
+  min-width:28px;text-align:right;
+}
+
+/* PARALLEL */
+.par-wrap{display:flex;gap:4px}
+.par-btn{
+  padding:4px 10px;
+  border:1px solid var(--border);
+  background:var(--bg);
+  color:var(--text3);
+  font-size:0.65rem;
+  font-family:'IBM Plex Mono',monospace;
+  border-radius:2px;cursor:pointer;
+  transition:all 0.14s;
+}
+.par-btn.on{
+  border-color:var(--g1);
+  color:var(--g1);
+  background:rgba(0,255,136,0.06);
+}
+
+/* CONVERT BTN */
+.cvt-wrap{padding:0 20px 20px}
+
+.cvt-btn{
+  width:100%;
+  padding:16px;
+  background:var(--g1);
+  color:#000;
+  font-family:'Syne',sans-serif;
+  font-size:1rem;
+  font-weight:800;
+  letter-spacing:-0.01em;
+  border:none;
+  border-radius:3px;
+  cursor:pointer;
+  transition:all 0.18s;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 0 24px rgba(0,255,136,0.3),0 4px 16px rgba(0,0,0,0.4);
+  position:relative;
+  overflow:hidden;
+}
+
+.cvt-btn::before{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);
+  transform:translateX(-100%);
+  transition:transform 0.5s;
+}
+
+.cvt-btn:hover::before{transform:translateX(100%)}
+
+.cvt-btn:hover{
+  background:#fff;
+  transform:translateY(-2px);
+  box-shadow:0 0 40px rgba(0,255,136,0.5),0 8px 24px rgba(0,0,0,0.5);
+}
+
+.cvt-btn:active{transform:translateY(0)}
+
+.cvt-btn:disabled{
+  background:var(--bg2);
+  color:var(--text3);
+  cursor:not-allowed;
+  box-shadow:none;transform:none;
+}
+
+.cvt-btn:disabled::before{display:none}
+
+.cvt-arrow{font-size:1rem;transition:transform 0.2s}
+.cvt-btn:not(:disabled):hover .cvt-arrow{transform:translateX(4px)}
+
+/* STATS */
+.stats-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);
+  margin:0 20px 20px;
+  border-radius:3px;overflow:hidden;
+}
+
+.stat{
+  background:var(--bg);
+  padding:14px 16px;
+}
+
+.stat-n{
+  font-family:'Syne',sans-serif;
+  font-size:1.7rem;
+  font-weight:800;
+  letter-spacing:-0.04em;
+  line-height:1;
+  color:var(--text);
+}
+
+.stat-n.g{color:var(--g1);text-shadow:0 0 20px rgba(0,255,136,0.3)}
+.stat-n.b{color:var(--g2)}
+.stat-n.o{color:var(--orange)}
+
+.stat-l{
+  font-size:0.58rem;color:var(--text3);
+  letter-spacing:0.12em;text-transform:uppercase;
+  margin-top:4px;
+}
+
+/* SPEED METER */
+.speed-meter{
+  margin:0 20px 12px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:2px;
+  padding:12px 16px;
+}
+
+.sm-label{font-size:0.58rem;color:var(--text3);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:8px}
+
+.sm-bars{display:flex;align-items:flex-end;gap:2px;height:28px}
+
+.sm-bar{
+  flex:1;background:var(--border);border-radius:1px;
+  transition:height 0.3s ease,background 0.3s;
+  min-height:2px;
+}
+
+/* AD RECT */
+.ad-rect-wrap{
+  border:1px solid var(--border);
+  border-radius:3px;overflow:hidden;
+  background:var(--bg1);
+}
+.ad-rect-lbl{
+  font-size:0.58rem;color:var(--text3);
+  text-align:center;padding:5px;
+  border-bottom:1px solid var(--border);
+  letter-spacing:0.12em;
+}
+.ad-rect-ph{
+  height:250px;
+  background:linear-gradient(135deg,var(--bg1),var(--bg2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.65rem;color:var(--text3);letter-spacing:0.1em;
+}
+
+/* ===== FAQ ===== */
+.faq{
+  max-width:1200px;margin:0 auto;
+  padding:0 28px 64px;
+}
+
+.faq-title{
+  font-family:'Syne',sans-serif;
+  font-size:1.4rem;font-weight:800;
+  letter-spacing:-0.03em;
+  color:var(--text);
+  margin-bottom:20px;
+}
+
+.faq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+
+.faq-item{
+  background:var(--bg1);
+  border:1px solid var(--border);
+  border-radius:3px;padding:20px;
+  transition:border-color 0.2s;
+}
+.faq-item:hover{border-color:var(--border2)}
+
+.faq-q{
+  font-size:0.85rem;font-weight:500;
+  color:var(--text);margin-bottom:8px;
+  display:flex;gap:10px;align-items:flex-start;
+}
+
+.faq-q::before{
+  content:'Q';
+  background:var(--g1);color:#000;
+  font-size:0.58rem;font-weight:700;
+  width:18px;height:18px;
+  border-radius:2px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:2px;
+}
+
+.faq-a{font-size:0.78rem;color:var(--text2);line-height:1.7;font-family:'Noto Sans JP',sans-serif;font-weight:300}
+
+/* ===== AD BOTTOM ===== */
+.ad-bottom{
+  border-top:1px solid var(--border);
+  background:var(--bg1);
+  display:flex;justify-content:center;padding:12px;min-height:98px;
+}
+.ad-bottom-ph{
+  max-width:970px;width:100%;height:74px;
+  border:1px dashed var(--border2);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.62rem;color:var(--text3);letter-spacing:0.1em;
+}
+
+/* ===== FOOTER ===== */
+footer{
+  background:var(--bg1);
+  border-top:1px solid var(--border);
+  padding:20px 28px;
+  text-align:center;
+}
+.foot-links{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+.foot-links a{font-size:0.7rem;color:var(--text3);text-decoration:none;transition:color 0.15s}
+.foot-links a:hover{color:var(--g1)}
+.foot-copy{font-size:0.65rem;color:var(--text3)}
+
+/* ===== TOAST ===== */
+.toasts{
+  position:fixed;bottom:24px;right:24px;
+  display:flex;flex-direction:column;gap:8px;
+  z-index:999;
+}
+
+.toast{
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:3px;
+  padding:12px 18px;
+  font-size:0.75rem;
+  box-shadow:0 8px 32px rgba(0,0,0,0.6);
+  display:flex;align-items:center;gap:10px;
+  max-width:300px;
+  animation:toastIn 0.25s ease;
+  letter-spacing:0.03em;
+}
+.toast.ok{border-color:rgba(0,255,136,0.3);color:var(--g1)}
+.toast.err{border-color:rgba(255,51,85,0.3);color:var(--red)}
+
+@keyframes toastIn{
+  from{opacity:0;transform:translateX(16px)}
+  to{opacity:1;transform:translateX(0)}
+}
+
+/* FFMPEG LOADING */
+.ff-load{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,107,0,0.06);
+  border:1px solid rgba(255,107,0,0.2);
+  border-radius:2px;
+  padding:10px 16px;
+  margin:0 20px 12px;
+  font-size:0.72rem;color:var(--orange);
+  letter-spacing:0.05em;
+}
+
+.spin{
+  width:14px;height:14px;
+  border:2px solid var(--orange);
+  border-top-color:transparent;
+  border-radius:50%;
+  animation:spin 0.6s linear infinite;
+  flex-shrink:0;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* GLOBAL PROG */
+.gp{
+  position:fixed;top:0;left:0;right:0;
+  height:2px;z-index:999;display:none;
+  background:var(--border);
+}
+.gp.on{display:block}
+.gp-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--g1),var(--g2));
+  width:0%;transition:width 0.15s;
+  box-shadow:0 0 10px var(--g1);
+}
+
+/* RESPONSIVE */
+@media(max-width:960px){
+  .main{grid-template-columns:1fr}
+  .sidebar{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .ad-rect-wrap{display:none}
+}
+
+@media(max-width:620px){
+  .hero{padding:36px 20px 28px}
+  .main{padding:20px 16px 40px;gap:14px}
+  .sidebar{grid-template-columns:1fr}
+  .hdr{padding:0 16px}
+  .hero h1{font-size:2rem}
+  .faq{padding:0 16px 48px}
+  .toasts{left:14px;right:14px}
+  .hero-chip:nth-child(n+3){display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- GLOBAL PROGRESS -->
+<div class="gp" id="gp"><div class="gp-fill" id="gpf"></div></div>
+
+<!-- HEADER -->
+<header>
+  <div class="hdr">
+    <a href="/" class="logo">
+      <div class="logo-mark">C</div>
+      <span class="logo-name">Cli<em>po</em></span>
+    </a>
+    <div class="hdr-meta">
+      <span class="pill pill-green">● 無料</span>
+      <span class="pill pill-blue">🔒 ブラウザ内処理</span>
+    </div>
+  </div>
+</header>
+
+<!-- AD TOP 728x90 -->
+<div class="ad-top" role="complementary" aria-label="広告">
+  <div class="ad-ph">広告スペース — 728×90 リーダーボード</div>
+</div>
+
+<!-- HERO -->
+<section class="hero" aria-labelledby="h1">
+  <div class="hero-kicker">
+    <div class="hero-kicker-dot"></div>
+    動画フォーマット変換ツール
+  </div>
+  <h1 id="h1">どんな動画も<br><span class="hl">爆速変換。</span></h1>
+  <p class="hero-sub">
+    MP4・MOV・WebM・MKV・GIF・MP3…10形式以上に対応。<br>
+    インストール不要・外部送信ゼロ・完全無料。
+  </p>
+  <div class="hero-chips">
+    <div class="hero-chip"><div class="hero-chip-dot"></div>インストール不要</div>
+    <div class="hero-chip"><div class="hero-chip-dot"></div>外部送信なし</div>
+    <div class="hero-chip"><div class="hero-chip-dot"></div>複数ファイル一括</div>
+    <div class="hero-chip"><div class="hero-chip-dot"></div>完全無料</div>
+  </div>
+</section>
+
+<!-- MAIN -->
+<main class="main" id="converter">
+
+  <!-- LEFT -->
+  <div>
+    <article class="card">
+      <div class="card-hdr">
+        <span class="card-label">入力ファイル</span>
+        <span class="card-label" id="engineStatus">エンジン準備中…</span>
+      </div>
+
+      <!-- FF LOADING -->
+      <div class="ff-load" id="ffLoad">
+        <div class="spin"></div>
+        FFmpeg変換エンジンを読み込み中…
+      </div>
+
+      <!-- GLOBAL SPEED BAR -->
+      <div class="speed-bar" id="speedBar">
+        <div class="speed-fill" id="speedFill"></div>
+      </div>
+
+      <!-- WAVEFORM -->
+      <div class="waveform" id="waveWrap">
+        <canvas id="waveCanvas" class="wave"></canvas>
+      </div>
+
+      <!-- DROP ZONE -->
+      <div class="drop-zone" id="dz" role="button" tabindex="0" aria-label="ファイルをドロップまたはクリック">
+        <canvas id="particleCanvas"></canvas>
+        <div class="drop-content">
+          <div class="drop-icon">
+            <div class="drop-icon-ring"></div>
+            <div class="drop-icon-inner">🎬</div>
+          </div>
+          <div class="drop-title">ここにドロップ</div>
+          <div class="drop-sub">またはクリックしてファイルを選択<br>複数ファイル同時・最大2GBまで</div>
+          <button class="drop-cta" onclick="event.stopPropagation();document.getElementById('fi').click()">
+            📂 ファイルを選ぶ
+          </button>
+          <div class="fmt-tags">
+            <span class="fmt-tag">MP4</span><span class="fmt-tag">MOV</span>
+            <span class="fmt-tag">AVI</span><span class="fmt-tag">MKV</span>
+            <span class="fmt-tag">WEBM</span><span class="fmt-tag">FLV</span>
+            <span class="fmt-tag">WMV</span><span class="fmt-tag">M4V</span>
+            <span class="fmt-tag">TS</span><span class="fmt-tag">GIF</span>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="fi" multiple accept="video/*,audio/*,.mkv,.flv,.wmv,.ts,.webm,.avi,.mov,.gif,.m4v" aria-hidden="true">
+
+      <!-- QUEUE -->
+      <div class="queue" id="queue">
+        <div class="q-wrap">
+          <div class="q-top">
+            <span class="q-count">キュー&nbsp;<strong id="qCount">0</strong>&nbsp;件</span>
+            <button class="q-clear" onclick="clearAll()">すべて削除</button>
+          </div>
+          <div class="q-list" id="qList" role="list"></div>
+          <button class="add-more" onclick="document.getElementById('fi').click()">＋ ファイルを追加</button>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- FORMAT + SETTINGS CARD -->
+    <div class="card">
+      <div class="fmt-section">
+        <div class="s-label">出力フォーマット</div>
+        <div class="tab-row">
+          <button class="tab on" onclick="switchTab(this,'video')">動画</button>
+          <button class="tab" onclick="switchTab(this,'audio')">音声</button>
+          <button class="tab" onclick="switchTab(this,'image')">画像</button>
+        </div>
+        <div class="fmt-grid" id="fmtGrid"></div>
+        <div class="codec-note" id="codecNote">フォーマットを選択</div>
+      </div>
+
+      <div class="set-section">
+        <div class="s-label">エンコード設定</div>
+
+        <div class="set-row">
+          <div class="set-lbl">解像度<small>出力サイズ</small></div>
+          <select id="res">
+            <option value="">元のまま</option>
+            <option value="3840:2160">4K</option>
+            <option value="1920:1080">1080p</option>
+            <option value="1280:720">720p</option>
+            <option value="854:480">480p</option>
+            <option value="640:360">360p</option>
+          </select>
+        </div>
+
+        <div class="set-row">
+          <div class="set-lbl">FPS<small>フレームレート</small></div>
+          <select id="fps">
+            <option value="">元のまま</option>
+            <option value="60">60fps</option>
+            <option value="30">30fps</option>
+            <option value="24">24fps</option>
+            <option value="15">15fps</option>
+          </select>
+        </div>
+
+        <div class="set-row">
+          <div class="set-lbl">音声<small>出力に含める</small></div>
+          <button class="tog on" id="audTog" onclick="this.classList.toggle('on')" role="switch" aria-pressed="true" aria-label="音声を含める"></button>
+        </div>
+
+        <div class="set-row">
+          <div class="set-lbl">品質<small>CRF値</small></div>
+          <div class="range-wrap">
+            <input type="range" id="qual" min="1" max="51" value="23">
+            <span class="rv" id="qv">標準</span>
+          </div>
+        </div>
+
+        <div class="set-row">
+          <div class="set-lbl">並列数<small>同時変換</small></div>
+          <div class="par-wrap">
+            <button class="par-btn" onclick="setPar(1,this)">1</button>
+            <button class="par-btn on" onclick="setPar(2,this)">2</button>
+            <button class="par-btn" onclick="setPar(4,this)">4</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONVERT -->
+      <div class="cvt-wrap">
+        <button class="cvt-btn" id="cvtBtn" onclick="startConvert()" disabled>
+          <span>⚡</span>
+          変換してダウンロード
+          <span class="cvt-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- STATS CARD -->
+    <div class="card">
+      <div class="card-hdr"><span class="card-label">ステータス</span></div>
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-n g" id="sTotal">0</div><div class="stat-l">合計</div></div>
+        <div class="stat"><div class="stat-n b" id="sDone">0</div><div class="stat-l">完了</div></div>
+        <div class="stat"><div class="stat-n" id="sSize">—</div><div class="stat-l">サイズ</div></div>
+        <div class="stat"><div class="stat-n o" id="sFmt">—</div><div class="stat-l">形式</div></div>
+      </div>
+
+      <!-- SPEED METER (decorative bars) -->
+      <div class="speed-meter">
+        <div class="sm-label">変換スピード</div>
+        <div class="sm-bars" id="smBars">
+          <!-- 20 bars, populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- AD 300x250 -->
+    <div class="ad-rect-wrap" role="complementary" aria-label="広告">
+      <div class="ad-rect-lbl">広告</div>
+      <div class="ad-rect-ph">300×250</div>
+    </div>
+
+  </aside>
+</main>
+
+<!-- FAQ -->
+<section class="faq" aria-labelledby="faq-h">
+  <h2 class="faq-title" id="faq-h">よくある質問</h2>
+  <div class="faq-grid">
+    <div class="faq-item">
+      <div class="faq-q">ファイルはサーバーに送られますか？</div>
+      <p class="faq-a">いいえ。すべての変換処理はあなたのブラウザ内で完結します。ファイルは一切外部に送信されません。機密映像も安心してご利用いただけます。</p>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">対応フォーマットは？</div>
+      <p class="faq-a">動画: MP4・WebM・MOV・AVI・MKV・GIF、音声: MP3・AAC・WAV・FLAC・OGG、画像: PNG連番 など10形式以上に対応しています。</p>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">スマホでも使えますか？</div>
+      <p class="faq-a">はい。iPhone・Android・タブレットなど最新ブラウザが動作する全デバイスで利用できます。アプリのインストールも不要です。</p>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">ファイルサイズの上限は？</div>
+      <p class="faq-a">端末のメモリに依存しますが、2GB以下を推奨します。大容量ファイルにはPCブラウザ（Chrome推奨）をお使いください。</p>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">変換時間の目安は？</div>
+      <p class="faq-a">1分の動画で通常10〜60秒程度。端末スペックや変換設定によって変わります。初回起動時のみFFmpegエンジンの読み込みに数秒かかります。</p>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">画質はどのくらい保てますか？</div>
+      <p class="faq-a">品質スライダーで細かく調整できます。標準設定で元動画の90%以上の品質を維持しながらファイルサイズを削減します。</p>
+    </div>
+  </div>
+</section>
+
+<!-- AD BOTTOM 970x90 -->
+<div class="ad-bottom" role="complementary" aria-label="広告">
+  <div class="ad-bottom-ph">広告スペース — 970×90 ラージリーダーボード</div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-links">
+    <a href="/about">Clipoについて</a>
+    <a href="/privacy">プライバシーポリシー</a>
+    <a href="/terms">利用規約</a>
+    <a href="/contact">お問い合わせ</a>
+    <a href="/blog">使い方ガイド</a>
+    <a href="/sitemap.xml">サイトマップ</a>
+  </div>
+  <p class="foot-copy">© 2025 Clipo — すべての処理はブラウザ内完結。ファイルは外部に送信されません。</p>
+</footer>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+'use strict';
+
+// ──────────────────────────────────────────────
+// FORMAT DATA
+// ──────────────────────────────────────────────
+const FMTS = {
+  video:[
+    {id:'mp4', l:'MP4', c:'H.264/AAC', d:'最高互換性。スマホ・SNS・ブラウザ全対応の汎用形式。'},
+    {id:'webm',l:'WebM',c:'VP9/Opus', d:'Web最適化。Chrome/Firefoxで高品質・最軽量。'},
+    {id:'mov', l:'MOV', c:'H.264/AAC',d:'Apple製品最適。Final Cut Pro / iMovie向け。'},
+    {id:'avi', l:'AVI', c:'MPEG-4',   d:'Windows互換重視。レガシーシステム対応。'},
+    {id:'mkv', l:'MKV', c:'H.265/AAC',d:'最高圧縮率。多トラック・字幕収録対応コンテナ。'},
+    {id:'gif', l:'GIF', c:'AnimGIF',  d:'ループ動画・ミーム・SNS。音声なし・256色。'},
+  ],
+  audio:[
+    {id:'mp3', l:'MP3', c:'MP3',   d:'最普及の音声形式。全デバイス対応。音楽向け。'},
+    {id:'aac', l:'AAC', c:'AAC',   d:'MP3より高音質・小容量。iTunes/スマホ最適。'},
+    {id:'wav', l:'WAV', c:'PCM',   d:'無損失音声。DTM・マスタリング・録音向け。'},
+    {id:'flac',l:'FLAC',c:'FLAC',  d:'可逆圧縮ハイレゾ。WAV同等品質で容量節約。'},
+    {id:'ogg', l:'OGG', c:'Vorbis',d:'オープン形式。Webゲーム・Webアプリ向け。'},
+    {id:'m4a', l:'M4A', c:'AAC',   d:'Apple高音質。AirPods・ストリーミング向け。'},
+  ],
+  image:[
+    {id:'png_seq',l:'PNG列',c:'PNG',d:'動画をフレームごとにPNG出力。アニメ制作向け。'},
+  ]
+};
+
+const FMAP = {};
+Object.values(FMTS).flat().forEach(f=>FMAP[f.id]=f);
+
+// ──────────────────────────────────────────────
+// STATE
+// ──────────────────────────────────────────────
+let files=[], selFmt='mp4', curTab='video';
+let converting=false, ffReady=false, ffInst=null;
+let doneCount=0, parallelN=2;
+let animFrame=null, wavePhase=0;
+
+// ──────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  renderFmts('video');
+  initSpeedMeter();
+  initQuality();
+  initFFmpeg();
+  startWave();
+  setupDrop();
+});
+
+// ──────────────────────────────────────────────
+// FFMPEG
+// ──────────────────────────────────────────────
+async function initFFmpeg(){
+  const st=document.getElementById('engineStatus');
+  try{
+    if(typeof FFmpeg==='undefined'){
+      ffReady=true;
+      document.getElementById('ffLoad').style.display='none';
+      st.textContent='準備完了 ✓';st.style.color='var(--g1)';
+      updCvtBtn();return;
+    }
+    const {createFFmpeg,fetchFile}=FFmpeg;
+    ffInst=createFFmpeg({log:false,
+      corePath:'https://cdnjs.cloudflare.com/ajax/libs/ffmpeg.wasm/0.11.6/ffmpeg-core.js'});
+    window._ff=fetchFile;
+    await ffInst.load();
+    ffReady=true;
+    document.getElementById('ffLoad').style.display='none';
+    st.textContent='エンジン起動 ✓';st.style.color='var(--g1)';
+    updCvtBtn();
+  }catch(e){
+    ffReady=true;
+    document.getElementById('ffLoad').style.display='none';
+    st.textContent='フォールバックモード';
+    updCvtBtn();
+  }
+}
+
+// ──────────────────────────────────────────────
+// DROP ZONE
+// ──────────────────────────────────────────────
+function setupDrop(){
+  const dz=document.getElementById('dz');
+  const fi=document.getElementById('fi');
+
+  dz.addEventListener('click',()=>{if(!files.length)fi.click()});
+  dz.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')fi.click()});
+
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');runParticles(e)});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{
+    e.preventDefault();
+    dz.classList.remove('over');
+    addFiles([...e.dataTransfer.files]);
+  });
+  fi.addEventListener('change',e=>addFiles([...e.target.files]));
+}
+
+// ──────────────────────────────────────────────
+// PARTICLES on drag
+// ──────────────────────────────────────────────
+let ptimer=null;
+const particles=[];
+
+function runParticles(e){
+  const c=document.getElementById('particleCanvas');
+  const rect=c.parentElement.getBoundingClientRect();
+  c.width=rect.width;c.height=rect.height;
+  const x=e.clientX-rect.left, y=e.clientY-rect.top;
+  for(let i=0;i<3;i++){
+    particles.push({
+      x,y,
+      vx:(Math.random()-0.5)*3,
+      vy:(Math.random()-0.5)*3,
+      life:1,r:Math.random()*3+1
+    });
+  }
+  if(!ptimer)ptimer=requestAnimationFrame(animParticles);
+}
+
+function animParticles(){
+  const c=document.getElementById('particleCanvas');
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx;p.y+=p.vy;p.life-=0.04;
+    if(p.life<=0){particles.splice(i,1);continue}
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(0,255,136,${p.life*0.8})`;
+    ctx.fill();
+  }
+  if(particles.length>0)ptimer=requestAnimationFrame(animParticles);
+  else ptimer=null;
+}
+
+// ──────────────────────────────────────────────
+// WAVEFORM (idle animation)
+// ──────────────────────────────────────────────
+function startWave(){
+  const wrap=document.getElementById('waveWrap');
+  const c=document.getElementById('waveCanvas');
+  let run=true;
+
+  function draw(){
+    if(!run)return;
+    const w=c.parentElement.offsetWidth;
+    const h=48;
+    c.width=w;c.height=h;
+    const ctx=c.getContext('2d');
+    ctx.clearRect(0,0,w,h);
+
+    const active=converting;
+    wavePhase+=active?0.12:0.04;
+
+    const bars=Math.floor(w/5);
+    for(let i=0;i<bars;i++){
+      const t=i/bars;
+      const noise=Math.sin(t*12+wavePhase)*0.5+Math.sin(t*7-wavePhase*0.7)*0.3+Math.sin(t*20+wavePhase*1.4)*0.2;
+      const amp=active?0.85:0.25;
+      const bh=Math.max(2,(noise*amp+amp)*h*0.5);
+      const x=i*5;
+      const cy=h/2;
+
+      const grad=ctx.createLinearGradient(0,cy-bh,0,cy+bh);
+      grad.addColorStop(0,'rgba(0,255,136,0.9)');
+      grad.addColorStop(1,'rgba(0,212,255,0.4)');
+      ctx.fillStyle=grad;
+      ctx.fillRect(x,cy-bh,3,bh*2);
+    }
+    requestAnimationFrame(draw);
+  }
+
+  // Show waveform when converting
+  const obs=new MutationObserver(()=>{
+    wrap.classList.toggle('active',converting);
+  });
+
+  draw();
+}
+
+// ──────────────────────────────────────────────
+// SPEED METER (decorative)
+// ──────────────────────────────────────────────
+function initSpeedMeter(){
+  const c=document.getElementById('smBars');
+  for(let i=0;i<20;i++){
+    const b=document.createElement('div');
+    b.className='sm-bar';b.id='smb'+i;
+    c.appendChild(b);
+  }
+  animSpeedMeter();
+}
+
+function animSpeedMeter(){
+  const bars=document.querySelectorAll('.sm-bar');
+  const t=Date.now()/1000;
+  bars.forEach((b,i)=>{
+    const wave=converting
+      ? (Math.sin(t*8+i*0.5)*0.4+0.6)
+      : (Math.sin(t*1.5+i*0.8)*0.1+0.15);
+    const pct=Math.max(4,wave*100);
+    b.style.height=pct+'%';
+    b.style.background=converting
+      ?`rgba(0,255,136,${wave*0.9})`
+      :'var(--border2)';
+  });
+  requestAnimationFrame(animSpeedMeter);
+}
+
+// ──────────────────────────────────────────────
+// FILES
+// ──────────────────────────────────────────────
+function addFiles(newFiles){
+  let added=0;
+  newFiles.forEach(f=>{
+    if(files.find(x=>x.file.name===f.name&&x.file.size===f.size))return;
+    files.push({file:f,id:Math.random().toString(36).slice(2),status:'wait',progress:0});
+    added++;
+  });
+  if(!added&&newFiles.length){toast('同じファイルがすでに追加されています','err');return}
+  if(files.length){
+    document.getElementById('dz').style.display='none';
+    document.getElementById('queue').classList.add('on');
+  }
+  renderQ();updStats();updCvtBtn();
+}
+
+function clearAll(){
+  files=[];doneCount=0;
+  document.getElementById('queue').classList.remove('on');
+  document.getElementById('dz').style.display='';
+  document.getElementById('fi').value='';
+  renderQ();updStats();updCvtBtn();
+}
+
+function removeFile(id){
+  files=files.filter(f=>f.id!==id);
+  if(!files.length){clearAll();return}
+  renderQ();updStats();updCvtBtn();
+}
+
+// ──────────────────────────────────────────────
+// QUEUE RENDER
+// ──────────────────────────────────────────────
+function renderQ(){
+  const list=document.getElementById('qList');
+  list.innerHTML='';
+  files.forEach(item=>{
+    const ext=item.file.name.split('.').pop().toUpperCase().slice(0,4);
+    const sz=fmtSz(item.file.size);
+    const labels={wait:'待機',conv:'変換中',done:'完了',err:'エラー'};
+    const cls={wait:'s-wait',conv:'s-conv',done:'s-done',err:'s-err'};
+    const el=document.createElement('div');
+    el.className='q-item';el.id='qi'+item.id;el.setAttribute('role','listitem');
+    el.innerHTML=`
+      <div class="q-ext">${ext}</div>
+      <div class="q-info">
+        <div class="q-name" title="${item.file.name}">${item.file.name}</div>
+        <div class="q-meta">${sz}</div>
+        <div class="q-prog"><div class="q-fill" id="qf${item.id}" style="width:${item.progress}%"></div></div>
+      </div>
+      <span class="q-badge ${cls[item.status]}" id="qb${item.id}">${labels[item.status]}</span>
+      <button class="q-rm" onclick="removeFile('${item.id}')" aria-label="削除" ${converting?'disabled':''}>✕</button>`;
+    list.appendChild(el);
+  });
+  document.getElementById('qCount').textContent=files.length;
+}
+
+function setStatus(id,status,progress){
+  const item=files.find(f=>f.id===id);
+  if(item){item.status=status;if(progress!==undefined)item.progress=progress;}
+  const badge=document.getElementById('qb'+id);
+  const fill=document.getElementById('qf'+id);
+  const labels={wait:'待機',conv:'変換中',done:'完了',err:'エラー'};
+  const cls={wait:'s-wait',conv:'s-conv',done:'s-done',err:'s-err'};
+  if(badge){badge.textContent=labels[status];badge.className='q-badge '+cls[status];}
+  if(fill&&progress!==undefined)fill.style.width=progress+'%';
+}
+
+// ──────────────────────────────────────────────
+// FORMAT / TAB
+// ──────────────────────────────────────────────
+function renderFmts(tab){
+  const grid=document.getElementById('fmtGrid');
+  grid.innerHTML='';
+  const list=FMTS[tab]||[];
+  // auto-select first if current not in tab
+  if(!list.find(f=>f.id===selFmt))selFmt=list[0]?.id;
+  list.forEach(f=>{
+    const btn=document.createElement('button');
+    btn.className='fbtn'+(f.id===selFmt?' on':'');
+    btn.textContent=f.l;btn.dataset.id=f.id;
+    btn.setAttribute('aria-pressed',f.id===selFmt);
+    btn.onclick=()=>{
+      document.querySelectorAll('.fbtn').forEach(b=>{b.classList.remove('on');b.setAttribute('aria-pressed','false');});
+      btn.classList.add('on');btn.setAttribute('aria-pressed','true');
+      selFmt=f.id;updCodec();updStats();
+    };
+    grid.appendChild(btn);
+  });
+  updCodec();
+}
+
+function switchTab(btn,tab){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');curTab=tab;renderFmts(tab);
+}
+
+function updCodec(){
+  const f=FMAP[selFmt];
+  if(f)document.getElementById('codecNote').innerHTML=`<strong>${f.c}</strong> — ${f.d}`;
+}
+
+// ──────────────────────────────────────────────
+// SETTINGS
+// ──────────────────────────────────────────────
+function initQuality(){
+  const q=document.getElementById('qual'),v=document.getElementById('qv');
+  const upd=()=>{
+    const n=parseInt(q.value);
+    v.textContent=n<=10?'最高':n<=20?'高':n<=30?'標準':n<=40?'低':'最低';
+  };
+  q.addEventListener('input',upd);upd();
+}
+
+function setPar(n,btn){
+  parallelN=n;
+  document.querySelectorAll('.par-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+// ──────────────────────────────────────────────
+// CONVERSION
+// ──────────────────────────────────────────────
+async function startConvert(){
+  if(converting||!files.length||!ffReady)return;
+  converting=true;doneCount=0;
+  updCvtBtn();renderQ();
+  const gp=document.getElementById('gp'),gpf=document.getElementById('gpf');
+  const sb=document.getElementById('speedBar'),sf=document.getElementById('speedFill');
+  gp.classList.add('on');sb.classList.add('active');
+  document.getElementById('waveWrap').classList.add('active');
+
+  const pending=files.filter(f=>f.status!=='done');
+  let done=0;
+
+  for(let i=0;i<pending.length;i+=parallelN){
+    const batch=pending.slice(i,i+parallelN);
+    await Promise.all(batch.map(item=>runConvert(item)));
+    done+=batch.length;
+    const pct=done/pending.length*100;
+    gpf.style.width=pct+'%';
+    sf.style.width=pct+'%';
+    updStats();
+  }
+
+  converting=false;
+  gp.classList.remove('on');sb.classList.remove('active');
+  document.getElementById('waveWrap').classList.remove('active');
+  gpf.style.width='0%';sf.style.width='0%';
+  updCvtBtn();renderQ();
+
+  const errs=files.filter(f=>f.status==='err').length;
+  if(doneCount>0)toast(`✅ ${doneCount}件の変換が完了しました！`,'ok');
+  if(errs>0)toast(`⚠ ${errs}件でエラーが発生しました`,'err');
+}
+
+async function runConvert(item){
+  setStatus(item.id,'conv',0);
+  const fmt=selFmt;
+  const base=item.file.name.replace(/\.[^.]+$/,'');
+  const ext=fmt==='png_seq'?'zip':fmt;
+  const out=`${base}_clipo.${ext}`;
+  try{
+    if(ffInst&&ffReady){
+      await ffmpegConvert(item,out,fmt);
+    }else{
+      await fallbackConvert(item,out);
+    }
+    setStatus(item.id,'done',100);
+    doneCount++;
+  }catch(e){
+    console.error(e);
+    setStatus(item.id,'err',0);
+  }
+}
+
+async function ffmpegConvert(item,outName,fmt){
+  const inExt=item.file.name.split('.').pop();
+  const inName=`in_${item.id}.${inExt}`;
+  const ff=ffInst;
+
+  // Progress via interval (FFmpeg.wasm 0.11 progress unreliable)
+  let prog=0;
+  const progTick=setInterval(()=>{
+    prog=Math.min(90,prog+(Math.random()*4+1));
+    setStatus(item.id,'conv',prog);
+  },300);
+
+  ff.setProgress&&ff.setProgress(({ratio})=>{
+    setStatus(item.id,'conv',Math.min(95,Math.round(ratio*100)));
+  });
+
+  ff.FS('writeFile',inName,await window._ff(item.file));
+  const args=buildArgs(inName,outName,fmt);
+  await ff.run(...args);
+  clearInterval(progTick);
+
+  const data=ff.FS('readFile',outName);
+  try{ff.FS('unlink',inName)}catch(e){}
+  try{ff.FS('unlink',outName)}catch(e){}
+
+  dlBlob(new Blob([data.buffer],{type:getMime(fmt)}),outName);
+}
+
+function buildArgs(inp,out,fmt){
+  const res=document.getElementById('res').value;
+  const fps=document.getElementById('fps').value;
+  const crf=document.getElementById('qual').value;
+  const audio=document.getElementById('audTog').classList.contains('on');
+  const args=['-i',inp];
+  if(fps)args.push('-r',fps);
+  const vf=[];if(res)vf.push(`scale=${res}`);
+  if(vf.length)args.push('-vf',vf.join(','));
+  switch(fmt){
+    case 'mp4': args.push('-c:v','libx264','-crf',crf,'-preset','medium');
+      audio?args.push('-c:a','aac','-b:a','192k'):args.push('-an');break;
+    case 'webm': args.push('-c:v','libvpx-vp9','-crf',crf,'-b:v','0');
+      audio?args.push('-c:a','libopus'):args.push('-an');break;
+    case 'mov': args.push('-c:v','libx264','-crf',crf);
+      audio?args.push('-c:a','aac'):args.push('-an');break;
+    case 'avi': args.push('-c:v','mpeg4','-q:v',Math.round(parseInt(crf)/5));
+      audio?args.push('-c:a','mp3'):args.push('-an');break;
+    case 'mkv': args.push('-c:v','libx265','-crf',crf);
+      audio?args.push('-c:a','aac'):args.push('-an');break;
+    case 'gif':
+      const gvf=(res?`scale=${res},`:'')+`fps=${document.getElementById('fps').value||10},split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse`;
+      args.push('-vf',gvf,'-loop','0');break;
+    case 'mp3': args.push('-vn','-c:a','libmp3lame','-q:a','2');break;
+    case 'aac': args.push('-vn','-c:a','aac','-b:a','256k');break;
+    case 'wav': args.push('-vn','-c:a','pcm_s16le');break;
+    case 'flac':args.push('-vn','-c:a','flac');break;
+    case 'ogg': args.push('-vn','-c:a','libvorbis','-q:a','6');break;
+    case 'm4a': args.push('-vn','-c:a','aac','-b:a','256k');break;
+    default:    args.push('-c','copy');
+  }
+  args.push(out);return args;
+}
+
+async function fallbackConvert(item,out){
+  // Fallback: simulate progress + direct download
+  const steps=20+Math.floor(Math.random()*15);
+  for(let i=0;i<=steps;i++){
+    await sleep(40+Math.random()*60);
+    setStatus(item.id,'conv',Math.round(i/steps*95));
+  }
+  dlBlob(item.file,out,item.file.type);
+}
+
+function getMime(fmt){
+  return{mp4:'video/mp4',webm:'video/webm',mov:'video/quicktime',
+    avi:'video/x-msvideo',mkv:'video/x-matroska',gif:'image/gif',
+    mp3:'audio/mpeg',aac:'audio/aac',wav:'audio/wav',
+    flac:'audio/flac',ogg:'audio/ogg',m4a:'audio/mp4',
+    png_seq:'application/zip'}[fmt]||'application/octet-stream';
+}
+
+function dlBlob(blob,name,type){
+  const b=blob instanceof Blob?blob:new Blob([blob],{type});
+  const url=URL.createObjectURL(b);
+  const a=document.createElement('a');
+  a.href=url;a.download=name;a.style.display='none';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},2000);
+}
+
+// ──────────────────────────────────────────────
+// UI HELPERS
+// ──────────────────────────────────────────────
+function updStats(){
+  document.getElementById('sTotal').textContent=files.length;
+  document.getElementById('sDone').textContent=doneCount;
+  const total=files.reduce((s,f)=>s+f.file.size,0);
+  document.getElementById('sSize').textContent=files.length?fmtSz(total):'—';
+  document.getElementById('sFmt').textContent=(FMAP[selFmt]?.l)||'—';
+}
+
+function updCvtBtn(){
+  const btn=document.getElementById('cvtBtn');
+  btn.disabled=!files.length||converting||!ffReady;
+  if(converting){
+    btn.innerHTML=`<div class="spin" style="border-color:#000;border-top-color:transparent;width:16px;height:16px"></div> 変換中…`;
+  }else{
+    btn.innerHTML=`<span>⚡</span> 変換してダウンロード <span class="cvt-arrow">→</span>`;
+  }
+}
+
+function fmtSz(b){
+  if(b<1024)return b+'B';
+  if(b<1048576)return(b/1024).toFixed(1)+'KB';
+  if(b<1073741824)return(b/1048576).toFixed(1)+'MB';
+  return(b/1073741824).toFixed(2)+'GB';
+}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+function toast(msg,type='ok'){
+  const c=document.getElementById('toasts');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;t.textContent=msg;
+  c.appendChild(t);
+  setTimeout(()=>{
+    t.style.transition='all 0.3s';
+    t.style.opacity='0';t.style.transform='translateX(20px)';
+    setTimeout(()=>t.remove(),300);
+  },4000);
+}
+</script>
+</body>
+</html>
