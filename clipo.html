@@ -9,6 +9,7 @@
 <title>Clipo（クリポ）— 最速・無料の動画変換ツール | MP4・MOV・WebM・GIF対応</title>
 <meta name="description" content="Clipoはブラウザ内で動作する最速の動画変換ツール。MP4・MOV・WebM・MKV・GIF・MP3など10形式対応。インストール不要・外部送信なし・完全無料。">
 <meta name="keywords" content="動画変換,無料,MP4変換,MOV変換,WebM変換,GIF変換,音声抽出,MP3変換,オンライン,フォーマット変換,動画圧縮,クリポ">
+<meta name="author" content="Clipo">
 <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">
 <link rel="canonical" href="https://clipo.app/">
 <meta property="og:type" content="website">
@@ -17,9 +18,22 @@
 <meta property="og:url" content="https://clipo.app/">
 <meta property="og:site_name" content="Clipo">
 <meta property="og:locale" content="ja_JP">
+<meta property="og:image" content="https://clipo.app/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Clipo 動画変換ツール">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@clipoapp">
 <meta name="twitter:title" content="Clipo — 最速ブラウザ動画変換">
 <meta name="twitter:description" content="MP4・MOV・WebM・GIFなど10形式対応。無料・安全・超高速。">
+<meta name="twitter:image" content="https://clipo.app/assets/og-image.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#050507">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Clipo">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
 
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[{"@type":"WebApplication","name":"Clipo","url":"https://clipo.app/","description":"ブラウザ内で動作する最速・無料の動画フォーマット変換ツール","applicationCategory":"MultimediaApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"JPY"},"featureList":["MP4変換","MOV変換","WebM変換","GIF変換","音声抽出","バッチ変換","並列処理"],"aggregateRating":{"@type":"AggregateRating","ratingValue":"4.9","reviewCount":"3840"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"ファイルはサーバーに送られますか？","acceptedAnswer":{"@type":"Answer","text":"いいえ。すべての変換処理はあなたのブラウザ内で完結します。"}},{"@type":"Question","name":"対応しているフォーマットは？","acceptedAnswer":{"@type":"Answer","text":"MP4,MOV,WebM,MKV,AVI,GIF,MP3,AAC,WAV,FLACなど10形式以上。"}},{"@type":"Question","name":"無料で使えますか？","acceptedAnswer":{"@type":"Answer","text":"はい、完全無料・登録不要でご利用いただけます。"}}]}]}
@@ -27,6 +41,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="script" href="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg.wasm/0.11.6/ffmpeg.min.js">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg.wasm/0.11.6/ffmpeg.min.js"></script>
 
@@ -154,21 +169,6 @@ header{
 .pill-green{background:rgba(0,255,136,0.1);color:var(--g1);border:1px solid rgba(0,255,136,0.2)}
 .pill-blue{background:rgba(0,212,255,0.08);color:var(--g2);border:1px solid rgba(0,212,255,0.15)}
 
-/* AD LEADERBOARD */
-.ad-top{
-  border-bottom:1px solid var(--border);
-  background:var(--bg1);
-  display:flex;justify-content:center;padding:10px;
-  min-height:92px;
-}
-.ad-ph{
-  max-width:728px;width:100%;height:72px;
-  border:1px dashed var(--border2);
-  border-radius:3px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:0.65rem;color:var(--text3);
-  letter-spacing:0.1em;
-}
 
 /* ===== HERO ===== */
 .hero{
@@ -859,24 +859,6 @@ input[type=range]::-webkit-slider-thumb{
   min-height:2px;
 }
 
-/* AD RECT */
-.ad-rect-wrap{
-  border:1px solid var(--border);
-  border-radius:3px;overflow:hidden;
-  background:var(--bg1);
-}
-.ad-rect-lbl{
-  font-size:0.58rem;color:var(--text3);
-  text-align:center;padding:5px;
-  border-bottom:1px solid var(--border);
-  letter-spacing:0.12em;
-}
-.ad-rect-ph{
-  height:250px;
-  background:linear-gradient(135deg,var(--bg1),var(--bg2));
-  display:flex;align-items:center;justify-content:center;
-  font-size:0.65rem;color:var(--text3);letter-spacing:0.1em;
-}
 
 /* ===== FAQ ===== */
 .faq{
@@ -920,18 +902,6 @@ input[type=range]::-webkit-slider-thumb{
 
 .faq-a{font-size:0.78rem;color:var(--text2);line-height:1.7;font-family:'Noto Sans JP',sans-serif;font-weight:300}
 
-/* ===== AD BOTTOM ===== */
-.ad-bottom{
-  border-top:1px solid var(--border);
-  background:var(--bg1);
-  display:flex;justify-content:center;padding:12px;min-height:98px;
-}
-.ad-bottom-ph{
-  max-width:970px;width:100%;height:74px;
-  border:1px dashed var(--border2);border-radius:3px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:0.62rem;color:var(--text3);letter-spacing:0.1em;
-}
 
 /* ===== FOOTER ===== */
 footer{
@@ -1008,6 +978,77 @@ footer{
   box-shadow:0 0 10px var(--g1);
 }
 
+/* ===== COOKIE BANNER ===== */
+#cookieBanner{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--bg2);
+  border-top:1px solid var(--border2);
+  padding:16px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  flex-wrap:wrap;
+  z-index:9000;
+  font-size:0.78rem;
+  color:var(--text2);
+  font-family:'Noto Sans JP',sans-serif;
+  font-weight:300;
+  box-shadow:0 -8px 32px rgba(0,0,0,0.5);
+}
+#cookieBanner a{color:var(--g1);text-decoration:none}
+#cookieBanner a:hover{text-decoration:underline}
+.ck-btns{display:flex;gap:8px;flex-shrink:0}
+.ck-accept{
+  padding:8px 18px;background:var(--g1);color:#000;
+  border:none;border-radius:2px;cursor:pointer;
+  font-size:0.75rem;font-family:'IBM Plex Mono',monospace;font-weight:700;
+  transition:background 0.15s;
+}
+.ck-accept:hover{background:#fff}
+.ck-decline{
+  padding:8px 14px;background:none;color:var(--text3);
+  border:1px solid var(--border2);border-radius:2px;cursor:pointer;
+  font-size:0.75rem;font-family:'IBM Plex Mono',monospace;
+  transition:all 0.15s;
+}
+.ck-decline:hover{border-color:var(--text3);color:var(--text2)}
+
+/* ===== PWA BANNER ===== */
+#pwaBanner{
+  position:fixed;bottom:80px;right:20px;
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:4px;
+  padding:16px 18px;
+  display:none;
+  align-items:center;gap:14px;
+  z-index:8000;
+  box-shadow:0 8px 32px rgba(0,0,0,0.6);
+  max-width:280px;
+  animation:toastIn 0.25s ease;
+}
+#pwaBanner.show{display:flex}
+.pwa-icon{
+  width:40px;height:40px;background:var(--g1);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:#000;
+  flex-shrink:0;
+}
+.pwa-text p{font-size:0.78rem;color:var(--text);margin-bottom:2px;font-weight:500}
+.pwa-text span{font-size:0.65rem;color:var(--text3)}
+.pwa-install{
+  width:100%;margin-top:10px;padding:8px;
+  background:var(--g1);color:#000;border:none;border-radius:2px;
+  font-size:0.72rem;font-family:'IBM Plex Mono',monospace;font-weight:700;
+  cursor:pointer;transition:background 0.15s;
+}
+.pwa-install:hover{background:#fff}
+.pwa-close{
+  position:absolute;top:8px;right:8px;
+  background:none;border:none;color:var(--text3);cursor:pointer;
+  font-size:0.8rem;padding:2px 6px;border-radius:2px;
+  transition:color 0.15s;
+}
+.pwa-close:hover{color:var(--text)}
+
 /* RESPONSIVE */
 @media(max-width:960px){
   .main{grid-template-columns:1fr}
@@ -1045,11 +1086,6 @@ footer{
     </div>
   </div>
 </header>
-
-<!-- AD TOP 728x90 -->
-<div class="ad-top" role="complementary" aria-label="広告">
-  <div class="ad-ph">広告スペース — 728×90 リーダーボード</div>
-</div>
 
 <!-- HERO -->
 <section class="hero" aria-labelledby="h1">
@@ -1229,11 +1265,6 @@ footer{
       </div>
     </div>
 
-    <!-- AD 300x250 -->
-    <div class="ad-rect-wrap" role="complementary" aria-label="広告">
-      <div class="ad-rect-lbl">広告</div>
-      <div class="ad-rect-ph">300×250</div>
-    </div>
 
   </aside>
 </main>
@@ -1269,25 +1300,39 @@ footer{
   </div>
 </section>
 
-<!-- AD BOTTOM 970x90 -->
-<div class="ad-bottom" role="complementary" aria-label="広告">
-  <div class="ad-bottom-ph">広告スペース — 970×90 ラージリーダーボード</div>
-</div>
-
 <!-- FOOTER -->
 <footer>
   <div class="foot-links">
-    <a href="/about">Clipoについて</a>
-    <a href="/privacy">プライバシーポリシー</a>
-    <a href="/terms">利用規約</a>
-    <a href="/contact">お問い合わせ</a>
-    <a href="/blog">使い方ガイド</a>
+    <a href="/pages/about.html">Clipoについて</a>
+    <a href="/pages/privacy.html">プライバシーポリシー</a>
+    <a href="/pages/terms.html">利用規約</a>
+    <a href="/pages/contact.html">お問い合わせ</a>
     <a href="/sitemap.xml">サイトマップ</a>
   </div>
   <p class="foot-copy">© 2025 Clipo — すべての処理はブラウザ内完結。ファイルは外部に送信されません。</p>
 </footer>
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
+
+<!-- COOKIE BANNER -->
+<div id="cookieBanner" style="display:none" role="dialog" aria-label="Cookie同意">
+  <p>Clipoはサービス改善のため<a href="/pages/privacy.html">Google Analytics</a>を使用しています。</p>
+  <div class="ck-btns">
+    <button class="ck-decline" onclick="declineCookies()">拒否</button>
+    <button class="ck-accept" onclick="acceptCookies()">同意する</button>
+  </div>
+</div>
+
+<!-- PWA INSTALL BANNER -->
+<div id="pwaBanner" role="dialog" aria-label="アプリをインストール">
+  <button class="pwa-close" onclick="closePwaBanner()" aria-label="閉じる">✕</button>
+  <div class="pwa-icon">C</div>
+  <div class="pwa-text">
+    <p>Clipoをインストール</p>
+    <span>オフラインでも使える</span>
+    <button class="pwa-install" onclick="installPWA()">ホーム画面に追加</button>
+  </div>
+</div>
 
 <!-- ===== JAVASCRIPT ===== -->
 <script>
@@ -1810,6 +1855,80 @@ function toast(msg,type='ok'){
     t.style.opacity='0';t.style.transform='translateX(20px)';
     setTimeout(()=>t.remove(),300);
   },4000);
+}
+
+// ──────────────────────────────────────────────
+// SERVICE WORKER
+// ──────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
+
+// ──────────────────────────────────────────────
+// COOKIE CONSENT
+// ──────────────────────────────────────────────
+(function(){
+  if(localStorage.getItem('clipoCookieConsent'))return;
+  setTimeout(()=>{
+    const b=document.getElementById('cookieBanner');
+    if(b)b.style.display='flex';
+  },1500);
+})();
+
+function acceptCookies(){
+  localStorage.setItem('clipoCookieConsent','accepted');
+  document.getElementById('cookieBanner').style.display='none';
+  initAnalytics();
+}
+
+function declineCookies(){
+  localStorage.setItem('clipoCookieConsent','declined');
+  document.getElementById('cookieBanner').style.display='none';
+}
+
+function initAnalytics(){
+  if(window.gtag)return;
+  const s=document.createElement('script');
+  s.async=true;
+  s.src='https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX';
+  document.head.appendChild(s);
+  window.dataLayer=window.dataLayer||[];
+  window.gtag=function(){dataLayer.push(arguments)};
+  gtag('js',new Date());
+  gtag('config','G-XXXXXXXXXX',{anonymize_ip:true,cookie_flags:'SameSite=None;Secure'});
+}
+
+if(localStorage.getItem('clipoCookieConsent')==='accepted')initAnalytics();
+
+// ──────────────────────────────────────────────
+// PWA INSTALL
+// ──────────────────────────────────────────────
+let deferredPrompt=null;
+
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  const visits=parseInt(localStorage.getItem('clipoVisits')||'0')+1;
+  localStorage.setItem('clipoVisits',visits);
+  if(visits>=3&&!localStorage.getItem('clipoPwaDismissed')){
+    document.getElementById('pwaBanner').classList.add('show');
+  }
+});
+
+async function installPWA(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  const{outcome}=await deferredPrompt.userChoice;
+  if(window.gtag)gtag('event','pwa_install',{outcome});
+  deferredPrompt=null;
+  document.getElementById('pwaBanner').classList.remove('show');
+}
+
+function closePwaBanner(){
+  localStorage.setItem('clipoPwaDismissed','1');
+  document.getElementById('pwaBanner').classList.remove('show');
 }
 </script>
 </body>

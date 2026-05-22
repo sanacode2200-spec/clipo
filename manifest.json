@@ -1,0 +1,41 @@
+{
+  "name": "Clipo — 動画変換ツール",
+  "short_name": "Clipo",
+  "description": "ブラウザ内で動作する最速・無料の動画フォーマット変換ツール",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050507",
+  "theme_color": "#050507",
+  "orientation": "any",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/screenshot.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "動画を変換する",
+      "url": "/",
+      "description": "動画ファイルを別の形式に変換"
+    }
+  ]
+}
