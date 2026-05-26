@@ -1763,32 +1763,40 @@ async function ffmpegConvert(item,outName,fmt){
 function buildArgs(inp,out,fmt){
   const res=document.getElementById('res').value;
   const fps=document.getElementById('fps').value;
-  const crf=document.getElementById('qual').value;
+  const crf=parseInt(document.getElementById('qual').value); // 1-51
   const audio=document.getElementById('audTog').classList.contains('on');
   const args=['-i',inp];
   if(fps)args.push('-r',fps);
   const vf=[];if(res)vf.push(`scale=${res}`);
   if(vf.length)args.push('-vf',vf.join(','));
+
+  // Map quality slider (1=best, 51=smallest) to audio bitrate (320k→64k)
+  const audioBr=Math.round(320-(crf-1)*5.12)+'k';
+  // Map quality slider to VP9 CRF (0-63): slider 1→10, slider 23→32, slider 51→60
+  const vp9crf=String(9+crf);
+  // Map quality slider to libvorbis quality (10→1): slider 1→10, slider 51→1
+  const vorbisQ=String(Math.round(10-(crf-1)*(9/50)));
+
   switch(fmt){
-    case 'mp4': args.push('-c:v','libx264','-crf',crf,'-preset','medium');
-      audio?args.push('-c:a','aac','-b:a','192k'):args.push('-an');break;
-    case 'webm': args.push('-c:v','libvpx-vp9','-crf',crf,'-b:v','0');
-      audio?args.push('-c:a','libopus'):args.push('-an');break;
-    case 'mov': args.push('-c:v','libx264','-crf',crf);
-      audio?args.push('-c:a','aac'):args.push('-an');break;
-    case 'avi': args.push('-c:v','mpeg4','-q:v',Math.round(parseInt(crf)/5));
-      audio?args.push('-c:a','mp3'):args.push('-an');break;
-    case 'mkv': args.push('-c:v','libx265','-crf',crf);
-      audio?args.push('-c:a','aac'):args.push('-an');break;
-    case 'gif':
+    case 'mp4': args.push('-c:v','libx264','-crf',String(crf),'-preset','medium');
+      audio?args.push('-c:a','aac','-b:a',audioBr):args.push('-an');break;
+    case 'webm': args.push('-c:v','libvpx-vp9','-crf',vp9crf,'-b:v','0');
+      audio?args.push('-c:a','libopus','-b:a',audioBr):args.push('-an');break;
+    case 'mov': args.push('-c:v','libx264','-crf',String(crf));
+      audio?args.push('-c:a','aac','-b:a',audioBr):args.push('-an');break;
+    case 'avi': args.push('-c:v','mpeg4','-q:v',String(Math.max(1,Math.round(crf/5))));
+      audio?args.push('-c:a','libmp3lame','-b:a',audioBr):args.push('-an');break;
+    case 'mkv': args.push('-c:v','libx264','-crf',String(crf));
+      audio?args.push('-c:a','aac','-b:a',audioBr):args.push('-an');break;
+    case 'gif':{
       const gvf=(res?`scale=${res},`:'')+`fps=${document.getElementById('fps').value||10},split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse`;
-      args.push('-vf',gvf,'-loop','0');break;
-    case 'mp3': args.push('-vn','-c:a','libmp3lame','-q:a','2');break;
-    case 'aac': args.push('-vn','-c:a','aac','-b:a','256k');break;
+      args.push('-vf',gvf,'-loop','0');break;}
+    case 'mp3': args.push('-vn','-c:a','libmp3lame','-b:a',audioBr);break;
+    case 'aac': args.push('-vn','-c:a','aac','-b:a',audioBr);break;
     case 'wav': args.push('-vn','-c:a','pcm_s16le');break;
     case 'flac':args.push('-vn','-c:a','flac');break;
-    case 'ogg': args.push('-vn','-c:a','libvorbis','-q:a','6');break;
-    case 'm4a': args.push('-vn','-c:a','aac','-b:a','256k');break;
+    case 'ogg': args.push('-vn','-c:a','libvorbis','-q:a',vorbisQ);break;
+    case 'm4a': args.push('-vn','-c:a','aac','-b:a',audioBr);break;
     default:    args.push('-c','copy');
   }
   args.push(out);return args;
