@@ -1406,8 +1406,11 @@ async function initFFmpeg(){
       return;
     }
     const {createFFmpeg,fetchFile}=FFmpeg;
-    ffInst=createFFmpeg({log:false,
-      corePath:'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'});
+    const hasSAB=typeof SharedArrayBuffer!=='undefined';
+    const corePath=hasSAB
+      ?'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
+      :'https://cdn.jsdelivr.net/npm/@ffmpeg/core-st@0.11.0/dist/ffmpeg-core.js';
+    ffInst=createFFmpeg({log:false,corePath});
     window._ff=fetchFile;
     await ffInst.load();
     ffReady=true;
