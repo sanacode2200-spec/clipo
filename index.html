@@ -1673,8 +1673,24 @@ function initQuality(){
   const upd=()=>{
     const n=parseInt(q.value);
     v.textContent=n<=10?'最高':n<=20?'高':n<=30?'標準':n<=40?'低':'最低';
+    updStats();
   };
   q.addEventListener('input',upd);upd();
+}
+
+function estimateSize(file){
+  const RATIO={
+    mp4:0.65,webm:0.55,mov:0.85,mkv:0.70,avi:0.90,
+    flv:0.75,wmv:0.85,ts:0.90,gif:1.4,png_seq:1.3,
+    mp3:0.08,aac:0.06,wav:0.45,flac:0.20,ogg:0.07,m4a:0.06
+  };
+  const AUDIO=new Set(['mp3','aac','wav','flac','ogg','m4a']);
+  const crf=parseInt(document.getElementById('qual').value)||23;
+  const base=RATIO[selFmt]??0.7;
+  const mult=AUDIO.has(selFmt)
+    ?(320-(crf-1)*5.12)/207        // audioBr / CRF23基準
+    :1.5-(crf-1)*1.2/50;           // CRF1→1.5x、CRF23→1.0x、CRF51→0.3x
+  return Math.round(file.size*base*mult);
 }
 
 function setPar(n,btn){
@@ -1842,8 +1858,14 @@ function dlBlob(blob,name,type){
 function updStats(){
   document.getElementById('sTotal').textContent=files.length;
   document.getElementById('sDone').textContent=doneCount;
-  const total=files.reduce((s,f)=>s+(f.outputSize??f.file.size),0);
-  document.getElementById('sSize').textContent=files.length?fmtSz(total):'—';
+  const szEl=document.getElementById('sSize');
+  if(!files.length){
+    szEl.textContent='—';
+  }else{
+    const allDone=files.every(f=>f.outputSize!=null);
+    const total=files.reduce((s,f)=>s+(f.outputSize??estimateSize(f)),0);
+    szEl.textContent=(allDone?'':'~')+fmtSz(total);
+  }
   document.getElementById('sFmt').textContent=(FMAP[selFmt]?.l)||'—';
 }
 
