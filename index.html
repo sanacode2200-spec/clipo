@@ -1353,7 +1353,7 @@ const FMTS = {
     {id:'webm',l:'WebM',c:'VP9/Opus', d:'Web最適化。Chrome/Firefoxで高品質・最軽量。'},
     {id:'mov', l:'MOV', c:'H.264/AAC',d:'Apple製品最適。Final Cut Pro / iMovie向け。'},
     {id:'avi', l:'AVI', c:'MPEG-4',   d:'Windows互換重視。レガシーシステム対応。'},
-    {id:'mkv', l:'MKV', c:'H.265/AAC',d:'最高圧縮率。多トラック・字幕収録対応コンテナ。'},
+    {id:'mkv', l:'MKV', c:'H.264/AAC',d:'高圧縮・多トラック・字幕収録対応コンテナ。'},
     {id:'gif', l:'GIF', c:'AnimGIF',  d:'ループ動画・ミーム・SNS。音声なし・256色。'},
   ],
   audio:[
@@ -1768,7 +1768,8 @@ function buildArgs(inp,out,fmt){
   const args=['-i',inp];
   if(fps)args.push('-r',fps);
   const vf=[];if(res)vf.push(`scale=${res}`);
-  if(vf.length)args.push('-vf',vf.join(','));
+  // GIF builds its own filtergraph; skip pre-switch -vf to avoid duplicate
+  if(vf.length&&fmt!=='gif')args.push('-vf',vf.join(','));
 
   // Map quality slider (1=best, 51=smallest) to audio bitrate (320k→64k)
   const audioBr=Math.round(320-(crf-1)*5.12)+'k';
@@ -1778,15 +1779,17 @@ function buildArgs(inp,out,fmt){
   const vorbisQ=String(Math.round(10-(crf-1)*(9/50)));
 
   switch(fmt){
-    case 'mp4': args.push('-c:v','libx264','-crf',String(crf),'-preset','medium');
+    // ultrafast preset is mandatory for FFmpeg.wasm — medium/slow cause WASM heap overflow
+    case 'mp4': args.push('-c:v','libx264','-crf',String(crf),'-preset','ultrafast');
       audio?args.push('-c:a','aac','-b:a',audioBr):args.push('-an');break;
-    case 'webm': args.push('-c:v','libvpx-vp9','-crf',vp9crf,'-b:v','0');
+    // -deadline realtime -cpu-used 8 required for VP9 to be usable in WASM
+    case 'webm': args.push('-c:v','libvpx-vp9','-crf',vp9crf,'-b:v','0','-deadline','realtime','-cpu-used','8');
       audio?args.push('-c:a','libopus','-b:a',audioBr):args.push('-an');break;
-    case 'mov': args.push('-c:v','libx264','-crf',String(crf));
+    case 'mov': args.push('-c:v','libx264','-crf',String(crf),'-preset','ultrafast');
       audio?args.push('-c:a','aac','-b:a',audioBr):args.push('-an');break;
     case 'avi': args.push('-c:v','mpeg4','-q:v',String(Math.max(1,Math.round(crf/5))));
       audio?args.push('-c:a','libmp3lame','-b:a',audioBr):args.push('-an');break;
-    case 'mkv': args.push('-c:v','libx264','-crf',String(crf));
+    case 'mkv': args.push('-c:v','libx264','-crf',String(crf),'-preset','ultrafast');
       audio?args.push('-c:a','aac','-b:a',audioBr):args.push('-an');break;
     case 'gif':{
       const gvf=(res?`scale=${res},`:'')+`fps=${document.getElementById('fps').value||10},split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse`;
