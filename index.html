@@ -1744,16 +1744,12 @@ async function ffmpegConvert(item,outName,fmt){
   const inName=`in_${item.id}.${inExt}`;
   const ff=ffInst;
 
-  // Progress via interval (FFmpeg.wasm 0.11 progress unreliable)
+  // setProgress ratio is non-monotonic in FFmpeg.wasm 0.11 — use interval only
   let prog=0;
   const progTick=setInterval(()=>{
     prog=Math.min(90,prog+(Math.random()*4+1));
-    setStatus(item.id,'conv',prog);
+    setStatus(item.id,'conv',Math.round(prog));
   },300);
-
-  ff.setProgress&&ff.setProgress(({ratio})=>{
-    setStatus(item.id,'conv',Math.min(95,Math.round(ratio*100)));
-  });
 
   ff.FS('writeFile',inName,await window._ff(item.file));
   const args=buildArgs(inName,outName,fmt);
@@ -1761,6 +1757,7 @@ async function ffmpegConvert(item,outName,fmt){
   clearInterval(progTick);
 
   const data=ff.FS('readFile',outName);
+  item.outputSize=data.buffer.byteLength;
   try{ff.FS('unlink',inName)}catch(e){}
   try{ff.FS('unlink',outName)}catch(e){}
 
@@ -1845,7 +1842,7 @@ function dlBlob(blob,name,type){
 function updStats(){
   document.getElementById('sTotal').textContent=files.length;
   document.getElementById('sDone').textContent=doneCount;
-  const total=files.reduce((s,f)=>s+f.file.size,0);
+  const total=files.reduce((s,f)=>s+(f.outputSize??f.file.size),0);
   document.getElementById('sSize').textContent=files.length?fmtSz(total):'—';
   document.getElementById('sFmt').textContent=(FMAP[selFmt]?.l)||'—';
 }
