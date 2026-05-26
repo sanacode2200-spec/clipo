@@ -812,7 +812,7 @@ input[type=range]::-webkit-slider-thumb{
 
 /* STATS */
 .stats-grid{
-  display:grid;grid-template-columns:1fr 1fr;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
   gap:1px;background:var(--border);
   border:1px solid var(--border);
   margin:0 20px 20px;
@@ -822,6 +822,7 @@ input[type=range]::-webkit-slider-thumb{
 .stat{
   background:var(--bg);
   padding:14px 16px;
+  min-width:0;
 }
 
 .stat-n{
@@ -831,11 +832,20 @@ input[type=range]::-webkit-slider-thumb{
   letter-spacing:-0.04em;
   line-height:1;
   color:var(--text);
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
 .stat-n.g{color:var(--g1);text-shadow:0 0 20px rgba(0,255,136,0.3)}
 .stat-n.b{color:var(--g2)}
 .stat-n.o{color:var(--orange)}
+
+.stat-n.compact{
+  font-size:1.45rem;
+  letter-spacing:-0.02em;
+}
 
 .stat-l{
   font-size:0.58rem;color:var(--text3);
@@ -1071,6 +1081,10 @@ footer{
   .faq{padding:0 16px 48px}
   .toasts{left:14px;right:14px}
   .hero-chip:nth-child(n+3){display:none}
+  .stats-grid{margin:0 16px 16px}
+  .stat{padding:12px 12px}
+  .stat-n{font-size:1.55rem}
+  .stat-n.compact{font-size:1.28rem}
 }
 </style>
 </head>
@@ -1258,8 +1272,8 @@ footer{
       <div class="stats-grid">
         <div class="stat"><div class="stat-n g" id="sTotal">0</div><div class="stat-l">合計</div></div>
         <div class="stat"><div class="stat-n b" id="sDone">0</div><div class="stat-l">完了</div></div>
-        <div class="stat"><div class="stat-n" id="sSize">—</div><div class="stat-l">サイズ</div></div>
-        <div class="stat"><div class="stat-n o" id="sFmt">—</div><div class="stat-l">形式</div></div>
+        <div class="stat"><div class="stat-n compact" id="sSize">—</div><div class="stat-l">サイズ</div></div>
+        <div class="stat"><div class="stat-n o compact" id="sFmt">—</div><div class="stat-l">形式</div></div>
       </div>
 
       <!-- SPEED METER (decorative bars) -->
