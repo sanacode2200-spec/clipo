@@ -1,7 +1,5 @@
-const CACHE_NAME = 'clipo-v3';
-const STATIC_ASSETS = [
-  '/',
-  '/manifest.json',
+const CACHE_NAME = 'clipo-v4';
+const ICON_ASSETS = [
   '/assets/icons/icon-192.png',
   '/assets/icons/icon-512.png',
 ];
@@ -12,7 +10,7 @@ const CDN_ORIGINS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ICON_ASSETS).catch(() => {}))
   );
   self.skipWaiting();
 });
@@ -28,10 +26,13 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
-  const isSameOrigin = url.origin === self.location.origin;
   const isCDN = CDN_ORIGINS.some(o => event.request.url.startsWith(o));
 
-  if (!isSameOrigin && !isCDN) return;
+  // HTMLナビゲーションは常にネットワークから（CSPヘッダーを最新に保つ）
+  if (event.request.mode === 'navigate') return;
+
+  // 同一オリジンでもCDNでもないリクエストはSWを素通り
+  if (url.origin !== self.location.origin && !isCDN) return;
 
   event.respondWith(
     caches.match(event.request).then(response => {
@@ -42,6 +43,6 @@ self.addEventListener('fetch', (event) => {
         }
         return fetchRes;
       });
-    }).catch(() => caches.match('/'))
+    }).catch(() => new Response('', {status: 503}))
   );
 });
