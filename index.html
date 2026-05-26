@@ -42,9 +42,9 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="script" href="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg.wasm/0.11.6/ffmpeg.min.js">
+<link rel="preload" as="script" href="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg.wasm/0.11.6/ffmpeg.min.js" crossorigin="anonymous">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg.wasm/0.11.6/ffmpeg.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg.wasm/0.11.6/ffmpeg.min.js" crossorigin="anonymous"></script>
 
 <style>
 :root{
@@ -1399,10 +1399,11 @@ async function initFFmpeg(){
   const st=document.getElementById('engineStatus');
   try{
     if(typeof FFmpeg==='undefined'){
-      ffReady=true;
+      // FFmpeg script blocked or failed to load — do not silently fallback
       document.getElementById('ffLoad').style.display='none';
-      st.textContent='準備完了 ✓';st.style.color='var(--g1)';
-      updCvtBtn();return;
+      st.textContent='エンジン読み込み失敗';st.style.color='#ff4444';
+      console.error('[Clipo] FFmpeg.wasm failed to load. Check COEP headers and crossorigin attribute.');
+      return;
     }
     const {createFFmpeg,fetchFile}=FFmpeg;
     ffInst=createFFmpeg({log:false,
@@ -1414,9 +1415,10 @@ async function initFFmpeg(){
     st.textContent='エンジン起動 ✓';st.style.color='var(--g1)';
     updCvtBtn();
   }catch(e){
-    ffReady=true;
+    ffInst=null;
     document.getElementById('ffLoad').style.display='none';
-    st.textContent='フォールバックモード';
+    st.textContent='エンジン読み込み失敗';st.style.color='#ff4444';
+    console.error('[Clipo] FFmpeg init error:',e);
     updCvtBtn();
   }
 }
