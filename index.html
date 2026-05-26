@@ -44,7 +44,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js" crossorigin="anonymous">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js" crossorigin="anonymous" onerror="window._ffScriptError=true"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js" crossorigin="anonymous" onerror="window._ffScriptError=true"></script>
 
 <style>
 :root{
@@ -1372,10 +1372,19 @@ const FMTS = {
 const FMAP = {};
 Object.values(FMTS).flat().forEach(f=>FMAP[f.id]=f);
 
+const ESTIMATE_RATIO={
+  mp4:0.65,webm:0.55,mov:0.85,mkv:0.70,avi:0.90,
+  flv:0.75,wmv:0.85,ts:0.90,gif:1.4,png_seq:1.3,
+  mp3:0.08,aac:0.06,wav:0.45,flac:0.20,ogg:0.07,m4a:0.06
+};
+const AUDIO_FORMATS=new Set(['mp3','aac','wav','flac','ogg','m4a']);
+const STATUS_LABEL={wait:'待機',conv:'変換中',done:'完了',err:'エラー'};
+const STATUS_CLASS={wait:'s-wait',conv:'s-conv',done:'s-done',err:'s-err'};
+
 // ──────────────────────────────────────────────
 // STATE
 // ──────────────────────────────────────────────
-let files=[], selFmt='mp4', curTab='video';
+let files=[], fileById=new Map(), selFmt='mp4', curTab='video';
 let converting=false, ffReady=false, ffInst=null;
 let doneCount=0, parallelN=2;
 let animFrame=null, wavePhase=0;
@@ -1491,16 +1500,22 @@ function animParticles(){
 // WAVEFORM (idle animation)
 // ──────────────────────────────────────────────
 function startWave(){
-  const wrap=document.getElementById('waveWrap');
   const c=document.getElementById('waveCanvas');
-  let run=true;
+  const ctx=c.getContext('2d');
+  let last=0,lastW=0;
 
-  function draw(){
-    if(!run)return;
+  function draw(ts){
+    const interval=converting?33:120;
+    if(document.hidden||ts-last<interval){
+      requestAnimationFrame(draw);
+      return;
+    }
+    last=ts;
     const w=c.parentElement.offsetWidth;
     const h=48;
-    c.width=w;c.height=h;
-    const ctx=c.getContext('2d');
+    if(w!==lastW||c.height!==h){
+      c.width=w;c.height=h;lastW=w;
+    }
     ctx.clearRect(0,0,w,h);
 
     const active=converting;
@@ -1524,12 +1539,7 @@ function startWave(){
     requestAnimationFrame(draw);
   }
 
-  // Show waveform when converting
-  const obs=new MutationObserver(()=>{
-    wrap.classList.toggle('active',converting);
-  });
-
-  draw();
+  requestAnimationFrame(draw);
 }
 
 // ──────────────────────────────────────────────
@@ -1537,28 +1547,37 @@ function startWave(){
 // ──────────────────────────────────────────────
 function initSpeedMeter(){
   const c=document.getElementById('smBars');
+  const bars=[];
   for(let i=0;i<20;i++){
     const b=document.createElement('div');
     b.className='sm-bar';b.id='smb'+i;
     c.appendChild(b);
+    bars.push(b);
   }
-  animSpeedMeter();
+  animSpeedMeter(bars);
 }
 
-function animSpeedMeter(){
-  const bars=document.querySelectorAll('.sm-bar');
-  const t=Date.now()/1000;
-  bars.forEach((b,i)=>{
-    const wave=converting
-      ? (Math.sin(t*8+i*0.5)*0.4+0.6)
-      : (Math.sin(t*1.5+i*0.8)*0.1+0.15);
-    const pct=Math.max(4,wave*100);
-    b.style.height=pct+'%';
-    b.style.background=converting
-      ?`rgba(0,255,136,${wave*0.9})`
-      :'var(--border2)';
+function animSpeedMeter(bars,last=0){
+  requestAnimationFrame(ts=>{
+    const interval=converting?80:250;
+    if(document.hidden||ts-last<interval){
+      animSpeedMeter(bars,last);
+      return;
+    }
+    last=ts;
+    const t=Date.now()/1000;
+    bars.forEach((b,i)=>{
+      const wave=converting
+        ? (Math.sin(t*8+i*0.5)*0.4+0.6)
+        : (Math.sin(t*1.5+i*0.8)*0.1+0.15);
+      const pct=Math.max(4,wave*100);
+      b.style.height=pct+'%';
+      b.style.background=converting
+        ?`rgba(0,255,136,${wave*0.9})`
+        :'var(--border2)';
+    });
+    animSpeedMeter(bars,last);
   });
-  requestAnimationFrame(animSpeedMeter);
 }
 
 // ──────────────────────────────────────────────
@@ -1568,7 +1587,8 @@ function addFiles(newFiles){
   let added=0;
   newFiles.forEach(f=>{
     if(files.find(x=>x.file.name===f.name&&x.file.size===f.size))return;
-    files.push({file:f,id:Math.random().toString(36).slice(2),status:'wait',progress:0});
+    const item={file:f,id:Math.random().toString(36).slice(2),status:'wait',progress:0};
+    files.push(item);fileById.set(item.id,item);
     added++;
   });
   if(!added&&newFiles.length){toast('同じファイルがすでに追加されています','err');return}
@@ -1580,7 +1600,7 @@ function addFiles(newFiles){
 }
 
 function clearAll(){
-  files=[];doneCount=0;
+  files=[];fileById.clear();doneCount=0;
   document.getElementById('queue').classList.remove('on');
   document.getElementById('dz').style.display='';
   document.getElementById('fi').value='';
@@ -1589,6 +1609,7 @@ function clearAll(){
 
 function removeFile(id){
   files=files.filter(f=>f.id!==id);
+  fileById.delete(id);
   if(!files.length){clearAll();return}
   renderQ();updStats();updCvtBtn();
 }
@@ -1602,8 +1623,6 @@ function renderQ(){
   files.forEach(item=>{
     const ext=item.file.name.split('.').pop().toUpperCase().slice(0,4);
     const sz=fmtSz(item.file.size);
-    const labels={wait:'待機',conv:'変換中',done:'完了',err:'エラー'};
-    const cls={wait:'s-wait',conv:'s-conv',done:'s-done',err:'s-err'};
     const el=document.createElement('div');
     el.className='q-item';el.id='qi'+item.id;el.setAttribute('role','listitem');
     el.innerHTML=`
@@ -1613,7 +1632,7 @@ function renderQ(){
         <div class="q-meta">${sz}</div>
         <div class="q-prog"><div class="q-fill" id="qf${item.id}" style="width:${item.progress}%"></div></div>
       </div>
-      <span class="q-badge ${cls[item.status]}" id="qb${item.id}">${labels[item.status]}</span>
+      <span class="q-badge ${STATUS_CLASS[item.status]}" id="qb${item.id}">${STATUS_LABEL[item.status]}</span>
       <button class="q-rm" onclick="removeFile('${item.id}')" aria-label="削除" ${converting?'disabled':''}>✕</button>`;
     list.appendChild(el);
   });
@@ -1621,13 +1640,11 @@ function renderQ(){
 }
 
 function setStatus(id,status,progress){
-  const item=files.find(f=>f.id===id);
+  const item=fileById.get(id);
   if(item){item.status=status;if(progress!==undefined)item.progress=progress;}
   const badge=document.getElementById('qb'+id);
   const fill=document.getElementById('qf'+id);
-  const labels={wait:'待機',conv:'変換中',done:'完了',err:'エラー'};
-  const cls={wait:'s-wait',conv:'s-conv',done:'s-done',err:'s-err'};
-  if(badge){badge.textContent=labels[status];badge.className='q-badge '+cls[status];}
+  if(badge){badge.textContent=STATUS_LABEL[status];badge.className='q-badge '+STATUS_CLASS[status];}
   if(fill&&progress!==undefined)fill.style.width=progress+'%';
 }
 
@@ -1679,18 +1696,16 @@ function initQuality(){
 }
 
 function estimateSize(file){
-  const RATIO={
-    mp4:0.65,webm:0.55,mov:0.85,mkv:0.70,avi:0.90,
-    flv:0.75,wmv:0.85,ts:0.90,gif:1.4,png_seq:1.3,
-    mp3:0.08,aac:0.06,wav:0.45,flac:0.20,ogg:0.07,m4a:0.06
-  };
-  const AUDIO=new Set(['mp3','aac','wav','flac','ogg','m4a']);
   const crf=parseInt(document.getElementById('qual').value)||23;
-  const base=RATIO[selFmt]??0.7;
-  const mult=AUDIO.has(selFmt)
+  const base=ESTIMATE_RATIO[selFmt]??0.7;
+  const mult=AUDIO_FORMATS.has(selFmt)
     ?(320-(crf-1)*5.12)/207        // audioBr / CRF23基準
     :1.5-(crf-1)*1.2/50;           // CRF1→1.5x、CRF23→1.0x、CRF51→0.3x
   return Math.round(file.size*base*mult);
+}
+
+function ffThreads(){
+  return String(Math.min(4,Math.max(1,(navigator.hardwareConcurrency||2)-1)));
 }
 
 function setPar(n,btn){
@@ -1800,16 +1815,16 @@ function buildArgs(inp,out,fmt){
 
   switch(fmt){
     // ultrafast preset is mandatory for FFmpeg.wasm — medium/slow cause WASM heap overflow
-    case 'mp4': args.push('-c:v','libx264','-crf',String(crf),'-preset','ultrafast');
+    case 'mp4': args.push('-c:v','libx264','-crf',String(crf),'-preset','ultrafast','-threads',ffThreads());
       audio?args.push('-c:a','aac','-b:a',audioBr):args.push('-an');break;
     // -deadline realtime -cpu-used 8 required for VP9 to be usable in WASM
-    case 'webm': args.push('-c:v','libvpx-vp9','-crf',vp9crf,'-b:v','0','-deadline','realtime','-cpu-used','8');
+    case 'webm': args.push('-c:v','libvpx-vp9','-crf',vp9crf,'-b:v','0','-deadline','realtime','-cpu-used','8','-row-mt','1','-threads',ffThreads());
       audio?args.push('-c:a','libopus','-b:a',audioBr):args.push('-an');break;
-    case 'mov': args.push('-c:v','libx264','-crf',String(crf),'-preset','ultrafast');
+    case 'mov': args.push('-c:v','libx264','-crf',String(crf),'-preset','ultrafast','-threads',ffThreads());
       audio?args.push('-c:a','aac','-b:a',audioBr):args.push('-an');break;
     case 'avi': args.push('-c:v','mpeg4','-q:v',String(Math.max(1,Math.round(crf/5))));
       audio?args.push('-c:a','libmp3lame','-b:a',audioBr):args.push('-an');break;
-    case 'mkv': args.push('-c:v','libx264','-crf',String(crf),'-preset','ultrafast');
+    case 'mkv': args.push('-c:v','libx264','-crf',String(crf),'-preset','ultrafast','-threads',ffThreads());
       audio?args.push('-c:a','aac','-b:a',audioBr):args.push('-an');break;
     case 'gif':{
       const gvf=(res?`scale=${res},`:'')+`fps=${document.getElementById('fps').value||10},split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse`;
@@ -1863,7 +1878,7 @@ function updStats(){
     szEl.textContent='—';
   }else{
     const allDone=files.every(f=>f.outputSize!=null);
-    const total=files.reduce((s,f)=>s+(f.outputSize??estimateSize(f)),0);
+    const total=files.reduce((s,f)=>s+(f.outputSize??estimateSize(f.file)),0);
     szEl.textContent=(allDone?'':'~')+fmtSz(total);
   }
   document.getElementById('sFmt').textContent=(FMAP[selFmt]?.l)||'—';
