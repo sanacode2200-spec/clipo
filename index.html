@@ -44,7 +44,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js" crossorigin="anonymous">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js" crossorigin="anonymous" onerror="window._ffScriptError=true"></script>
 
 <style>
 :root{
@@ -1397,16 +1397,18 @@ document.addEventListener('DOMContentLoaded',()=>{
 // ──────────────────────────────────────────────
 async function initFFmpeg(){
   const st=document.getElementById('engineStatus');
+  const ffLoadEl=document.getElementById('ffLoad');
   try{
     if(typeof FFmpeg==='undefined'){
-      // FFmpeg script blocked or failed to load — do not silently fallback
-      document.getElementById('ffLoad').style.display='none';
-      st.textContent='エンジン読み込み失敗';st.style.color='#ff4444';
-      console.error('[Clipo] FFmpeg.wasm failed to load. Check COEP headers and crossorigin attribute.');
+      ffLoadEl.style.display='none';
+      const reason=window._ffScriptError?'スクリプト読み込みエラー':('isolated='+self.crossOriginIsolated);
+      st.textContent='エンジン失敗('+reason+')';st.style.color='#ff4444';
+      console.error('[Clipo] FFmpeg undefined. scriptErr='+window._ffScriptError+' crossOriginIsolated='+self.crossOriginIsolated);
       return;
     }
     const {createFFmpeg,fetchFile}=FFmpeg;
     const hasSAB=typeof SharedArrayBuffer!=='undefined';
+    console.log('[Clipo] SAB='+hasSAB+' isolated='+self.crossOriginIsolated);
     const corePath=hasSAB
       ?'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
       :'https://cdn.jsdelivr.net/npm/@ffmpeg/core-st@0.11.0/dist/ffmpeg-core.js';
@@ -1414,13 +1416,13 @@ async function initFFmpeg(){
     window._ff=fetchFile;
     await ffInst.load();
     ffReady=true;
-    document.getElementById('ffLoad').style.display='none';
+    ffLoadEl.style.display='none';
     st.textContent='エンジン起動 ✓';st.style.color='var(--g1)';
     updCvtBtn();
   }catch(e){
     ffInst=null;
-    document.getElementById('ffLoad').style.display='none';
-    st.textContent='エンジン読み込み失敗';st.style.color='#ff4444';
+    ffLoadEl.style.display='none';
+    st.textContent='エンジン失敗:'+e.message.slice(0,40);st.style.color='#ff4444';
     console.error('[Clipo] FFmpeg init error:',e);
     updCvtBtn();
   }
