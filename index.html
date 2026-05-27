@@ -1249,8 +1249,8 @@ footer{
         <div class="set-row">
           <div class="set-lbl">並列数<small>同時変換</small></div>
           <div class="par-wrap">
-            <button class="par-btn" onclick="setPar(1,this)">1</button>
-            <button class="par-btn on" onclick="setPar(2,this)">2</button>
+            <button class="par-btn on" onclick="setPar(1,this)">1</button>
+            <button class="par-btn" onclick="setPar(2,this)">2</button>
             <button class="par-btn" onclick="setPar(4,this)">4</button>
           </div>
         </div>
@@ -1392,6 +1392,10 @@ const ESTIMATE_RATIO={
   mp3:0.08,aac:0.06,wav:0.45,flac:0.20,ogg:0.07,m4a:0.06
 };
 const AUDIO_FORMATS=new Set(['mp3','aac','wav','flac','ogg','m4a']);
+const VIDEO_FORMATS=new Set(['mp4','webm','mov','avi','mkv','gif']);
+const REMUX_FORMATS=new Set(['mp4','mov','mkv']);
+const MAX_FILE_SIZE=1024*1024*1024; // 1GB
+const WARN_FILE_SIZE=500*1024*1024; // 500MB
 const STATUS_LABEL={wait:'待機',conv:'変換中',done:'完了',err:'エラー'};
 const STATUS_CLASS={wait:'s-wait',conv:'s-conv',done:'s-done',err:'s-err'};
 
@@ -1400,7 +1404,7 @@ const STATUS_CLASS={wait:'s-wait',conv:'s-conv',done:'s-done',err:'s-err'};
 // ──────────────────────────────────────────────
 let files=[], fileById=new Map(), selFmt='mp4', curTab='video';
 let converting=false, ffReady=false, ffInst=null;
-let doneCount=0, parallelN=2;
+let doneCount=0, parallelN=1;
 let animFrame=null, wavePhase=0;
 
 // ──────────────────────────────────────────────
@@ -1599,13 +1603,21 @@ function animSpeedMeter(bars,last=0){
 // ──────────────────────────────────────────────
 function addFiles(newFiles){
   let added=0;
+  let tooLarge=0,warnLarge=0;
   newFiles.forEach(f=>{
     if(files.find(x=>x.file.name===f.name&&x.file.size===f.size))return;
+    if(f.size>MAX_FILE_SIZE){tooLarge++;return;}
+    if(f.size>WARN_FILE_SIZE)warnLarge++;
     const item={file:f,id:Math.random().toString(36).slice(2),status:'wait',progress:0};
     files.push(item);fileById.set(item.id,item);
     added++;
   });
-  if(!added&&newFiles.length){toast('同じファイルがすでに追加されています','err');return}
+  if(tooLarge)toast(`1GBを超えるファイルは追加できません（${tooLarge}件）`,'err');
+  if(warnLarge)toast(`500MB超のファイルは変換に時間がかかる場合があります（${warnLarge}件）`,'ok');
+  if(!added&&newFiles.length){
+    if(!tooLarge)toast('同じファイルがすでに追加されています','err');
+    return;
+  }
   if(files.length){
     document.getElementById('dz').style.display='none';
     document.getElementById('queue').classList.add('on');
@@ -1723,9 +1735,14 @@ function ffThreads(){
 }
 
 function setPar(n,btn){
+  if(ffInst&&n>1){
+    n=1;
+    toast('長い動画の安定性のため1件ずつ処理します','ok');
+  }
   parallelN=n;
   document.querySelectorAll('.par-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
+  const active=[...document.querySelectorAll('.par-btn')].find(b=>b.textContent.trim()===String(n));
+  (active||btn).classList.add('on');
 }
 
 // ──────────────────────────────────────────────
@@ -1742,9 +1759,10 @@ async function startConvert(){
 
   const pending=files.filter(f=>f.status!=='done');
   let done=0;
+  const batchSize=ffInst?1:parallelN;
 
-  for(let i=0;i<pending.length;i+=parallelN){
-    const batch=pending.slice(i,i+parallelN);
+  for(let i=0;i<pending.length;i+=batchSize){
+    const batch=pending.slice(i,i+batchSize);
     await Promise.all(batch.map(item=>runConvert(item)));
     done+=batch.length;
     const pct=done/pending.length*100;
@@ -1788,6 +1806,7 @@ async function ffmpegConvert(item,outName,fmt){
   const inExt=item.file.name.split('.').pop();
   const inName=`in_${item.id}.${inExt}`;
   const ff=ffInst;
+  let outWritten=false;
 
   // setProgress ratio is non-monotonic in FFmpeg.wasm 0.11 — use interval only
   let prog=0;
@@ -1796,17 +1815,48 @@ async function ffmpegConvert(item,outName,fmt){
     setStatus(item.id,'conv',Math.round(prog));
   },300);
 
-  ff.FS('writeFile',inName,await window._ff(item.file));
-  const args=buildArgs(inName,outName,fmt);
-  await ff.run(...args);
-  clearInterval(progTick);
+  try{
+    ff.FS('writeFile',inName,await window._ff(item.file));
 
-  const data=ff.FS('readFile',outName);
-  item.outputSize=data.buffer.byteLength;
-  try{ff.FS('unlink',inName)}catch(e){}
-  try{ff.FS('unlink',outName)}catch(e){}
+    if(shouldTryRemux(item.file,fmt)){
+      try{
+        await ff.run(...buildRemuxArgs(inName,outName,fmt));
+        outWritten=true;
+      }catch(e){
+        try{ff.FS('unlink',outName)}catch(_){}
+        console.info('[Clipo] remux failed, fallback to transcode:',e);
+      }
+    }
 
-  dlBlob(new Blob([data.buffer],{type:getMime(fmt)}),outName);
+    if(!outWritten){
+      const args=buildArgs(inName,outName,fmt);
+      await ff.run(...args);
+      outWritten=true;
+    }
+
+    const data=ff.FS('readFile',outName);
+    item.outputSize=data.buffer.byteLength;
+    dlBlob(new Blob([data.buffer],{type:getMime(fmt)}),outName);
+  }finally{
+    clearInterval(progTick);
+    try{ff.FS('unlink',inName)}catch(e){}
+    try{ff.FS('unlink',outName)}catch(e){}
+  }
+}
+
+function shouldTryRemux(file,fmt){
+  if(!REMUX_FORMATS.has(fmt))return false;
+  if(document.getElementById('res').value||document.getElementById('fps').value)return false;
+  if(!document.getElementById('audTog').classList.contains('on'))return false;
+  if(document.getElementById('qual').value!=='23')return false;
+  return VIDEO_FORMATS.has(fmt);
+}
+
+function buildRemuxArgs(inp,out,fmt){
+  const args=['-i',inp,'-map','0:v:0','-map','0:a?','-c','copy'];
+  if(fmt==='mp4'||fmt==='mov')args.push('-movflags','+faststart');
+  args.push(out);
+  return args;
 }
 
 function buildArgs(inp,out,fmt){
